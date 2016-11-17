@@ -1,5 +1,9 @@
 package peli
 
+/*
+ * testikommentti
+ */
+
 class Ship(private val x1: Int, 
     private val y1: Int, 
     private val x2: Int, 
