@@ -3,11 +3,11 @@ import scala.collection.mutable.Buffer
 import scala.util.Random
 
 trait Player {
-  var score: Int
-  val options: Opts
+  var score: Int = 0
+  val options: Opts = new Opts(Vector(20,20),Vector(5,4,3,3,2,2,1),Vector(),0)
   val resources: Array[Int] = this.options.powerUps.toArray
-  val fleet: Buffer[Ship] 
-  val squaresBombed: Array[Array[Int]]
+  val fleet: Buffer[Ship] = Buffer[Ship]()
+  val squaresBombed: Array[Array[Int]] = Array.ofDim[Int](options.gridSize(0),options.gridSize(1))
   
   def isDefeated: Boolean = this.fleet.isEmpty
   
