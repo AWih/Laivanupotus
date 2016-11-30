@@ -16,7 +16,7 @@ trait Player {
   }
   
   def placeShip(x:Int,y:Int,x2:Int,y2:Int): Boolean = {
-    if (x<0 | x2<0 | y<0 | y2<0 | x>x2 | y>y2 | x>options.gridSize(0) | x2>options.gridSize(0) | y>options.gridSize(1) | y2>options.gridSize(1))
+    if (x<0 || x2<0 || y<0 || y2<0 || x>x2 || y>y2 || x>options.gridSize(0) || x2>options.gridSize(0) || y>options.gridSize(1) || y2>options.gridSize(1))
       false
     else {
       var a=true
