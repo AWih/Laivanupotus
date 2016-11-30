@@ -47,7 +47,8 @@ trait Player {
         for (posy <- y to y2) {
           for (sh <- fleet.indices) {
             for (bl <- fleet(sh).blocks.indices) {
-              if (posx==fleet(sh).blocks(bl).x | posy==fleet(sh).blocks(bl).y) {
+              if (posx==fleet(sh).blocks(bl).x && posy==fleet(sh).blocks(bl).y) {
+                println("Fail:Square occupied")
                 a=false
               }
             }
