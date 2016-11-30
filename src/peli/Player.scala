@@ -1,5 +1,6 @@
 package peli
 import scala.collection.mutable.Buffer
+import scala.util.Random
 
 trait Player {
   var score: Int
@@ -11,8 +12,30 @@ trait Player {
   def isDefeated: Boolean = this.fleet.isEmpty
   
   def placeFleet: Boolean = {
-    //TODO: toteutus
-    ???
+    val r=new Random()
+    var a=false
+    var attemptNo:Int=0
+    
+    for (sh<-options.fleetComposition.indices) {
+      
+      do { if (r.nextBoolean()) {
+        attemptNo += 1
+        val x = r.nextInt(options.gridSize(0)-options.fleetComposition(sh))
+        val x2 = x+options.fleetComposition(sh)
+        val y = r.nextInt(options.gridSize(1))
+        val y2=y
+        a = placeShip(x,y,x2,y2)
+      }
+      else {
+        attemptNo += 1
+        val y = r.nextInt(options.gridSize(1)-options.fleetComposition(sh))
+        val y2 = y+options.fleetComposition(sh)
+        val x = r.nextInt(options.gridSize(0))
+        val x2=x
+        a = placeShip(x,y,x2,y2)
+      } } while (!a && (attemptNo<50))
+    }
+    a
   }
   
   def placeShip(x:Int,y:Int,x2:Int,y2:Int): Boolean = {
