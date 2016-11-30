@@ -10,19 +10,26 @@ trait Player {
   
   def isDefeated: Boolean = this.fleet.isEmpty
   
-  def placeFleet: Boolean = {
+  def placeFleet(): Boolean = {
     //TODO: toteutus
     ???
   }
   
-  def placeShip: Boolean = {
+  def placeShip(): Boolean = {
         //TODO: toteutus
     ???
   }
   
   def shoot(x: Int, y: Int): Boolean = ???
   
-  def performTurn: Unit = ???  //Unit (?)
+  def performTurn(): String  //voisi palauttaa esim string-arvon, joka välitetään käyttöliittymään
   
+  
+}
+
+class HumanPlayer(val options: Opts) extends Player {
+}
+
+class ComputerPlayer(val options: Opts) extends Player {
   
 }

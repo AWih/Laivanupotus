@@ -1,7 +1,9 @@
 package peli
 
-class Block(val x: Int, val y: Int) {
+class Block(val x: Int, val y: Int, val containsShip: Boolean) {
    var isIntact = true
+   
+   
    
    def checkHit(xShot: Int, yShot: Int): Boolean = {
      if ((this.x == xShot) && (this.y == yShot)) {
