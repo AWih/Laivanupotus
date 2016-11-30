@@ -1,4 +1,5 @@
 package peli
+import scala.collection.mutable.Buffer
 
 /*
  * testikommentti
@@ -11,7 +12,13 @@ class Ship(private val x1: Int,
 
   println("x1:"+x1+" y1:"+y1+" x2:"+x2+" y2:"+y2)
   
-  val blocks: Array[Block] = Array[Block]()
+  val blocks: Buffer[Block] = Buffer[Block]()
+  
+  for (xx<-x1 to x2) {
+    for (yy<-y1 to y2) {
+      blocks += new Block(xx,yy)
+    }
+  }
   
   def checkHit(x: Int, y: Int) = {
     this.blocks.exists(_.checkHit(x, y))
