@@ -10,7 +10,6 @@ class Ship(private val x1: Int,
     private val y2: Int) {
 
   val blocks: Array[Block] = Array[Block]()
-  for 
   
   def checkHit(x: Int, y: Int) = {
     this.blocks.exists(_.checkHit(x, y))
