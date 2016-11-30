@@ -11,7 +11,7 @@ class Block(val x: Int, val y: Int) {
      else false
    }
   
-  ???
+  
  // kello on 2 yöllä
 //kello on 2:11 yöllä
 // kello on 2:44
