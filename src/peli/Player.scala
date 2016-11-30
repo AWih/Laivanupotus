@@ -15,9 +15,28 @@ trait Player {
     ???
   }
   
-  def placeShip: Boolean = {
-        //TODO: toteutus
-    ???
+  def placeShip(x:Int,y:Int,x2:Int,y2:Int): Boolean = {
+    if (x<0 | x2<0 | y<0 | y2<0 | x>x2 | y>y2 | x>options.gridSize(0) | x2>options.gridSize(0) | y>options.gridSize(1) | y2>options.gridSize(1))
+      false
+    else {
+      var a=true
+      for (posx <- x to x2) {
+        for (posy <- y to y2) {
+          for (sh <- fleet.indices) {
+            for (bl <- fleet(sh).blocks.indices) {
+              if (posx==fleet(sh).blocks(bl).x | posy==fleet(sh).blocks(bl).y) {
+                a=false
+              }
+            }
+          }
+        }
+      }
+    if (a) {
+      fleet += new Ship(x,y,x2,y2)
+    }
+    a
+    }
+    
   }
   
   def shoot(x: Int, y: Int): Boolean = ???
