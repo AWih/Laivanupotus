@@ -3,12 +3,11 @@ import scala.collection.mutable.Buffer
 import scala.util.Random
 
 trait Player {
-  var score: Int = 0
-  val options: Opts = new Opts(Vector(20,20),Vector(5,4,3,3,2,2,1),Vector(),0)
+  var score: Int
+  val options: Opts
   val resources: Array[Int] = this.options.powerUps.toArray
-  val fleet: Buffer[Ship] = Buffer[Ship]()
-  val squaresBombed: Array[Array[Int]] = Array.ofDim[Int](options.gridSize(0),options.gridSize(1))
-  
+  val fleet: Buffer[Ship] 
+  val squaresBombed: Array[Array[Int]]  
   def isDefeated: Boolean = this.fleet.isEmpty
   
   def placeFleet: Boolean = {
@@ -65,7 +64,29 @@ trait Player {
   
   def shoot(x: Int, y: Int): Boolean = ???
   
-  def performTurn: Unit = ???  //Unit (?)
+  def performTurn(command: String): String
   
   
+}
+
+class HumanPlayer(val options: Opts) extends Player {
+  var score = 0
+  val fleet: Buffer[Ship] = Buffer[Ship]()
+  val squaresBombed = Array.fill(options.gridSize(0), options.gridSize(1))(0)
+  this.placeFleet
+  
+  def performTurn(command: String): String = {
+    s"pelaaja pelasi komennon $command"
+  }
+}
+
+class ComputerPlayer(val options: Opts) extends Player {
+  var score = 0
+  val fleet: Buffer[Ship] = Buffer[Ship]()
+  val squaresBombed = Array.fill(options.gridSize(0), options.gridSize(1))(0)
+  this.placeFleet
+  
+  def performTurn(command: String) = {
+    "tietokoneen vuoro"
+  }
 }
