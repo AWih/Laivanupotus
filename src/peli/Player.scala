@@ -19,16 +19,16 @@ trait Player {
       
       do { if (r.nextBoolean()) {
         attemptNo += 1
-        val x = r.nextInt(options.gridSize(0)-options.fleetComposition(sh))
-        val x2 = x+options.fleetComposition(sh)
+        val x = r.nextInt(options.gridSize(0)-(options.fleetComposition(sh)-1))
+        val x2 = x+(options.fleetComposition(sh)-1)
         val y = r.nextInt(options.gridSize(1))
         val y2=y
         a = placeShip(x,y,x2,y2)
       }
       else {
         attemptNo += 1
-        val y = r.nextInt(options.gridSize(1)-options.fleetComposition(sh))
-        val y2 = y+options.fleetComposition(sh)
+        val y = r.nextInt(options.gridSize(1)-(options.fleetComposition(sh)-1))
+        val y2 = y+(options.fleetComposition(sh)-1)
         val x = r.nextInt(options.gridSize(0))
         val x2=x
         a = placeShip(x,y,x2,y2)
@@ -66,7 +66,7 @@ trait Player {
   
   def performTurn(command: String): String
   
-  
+  def checkHit(x:Int,y:Int):Boolean = this.fleet.exists(_.checkHit(x, y))
 }
 
 class HumanPlayer(val options: Opts) extends Player {
