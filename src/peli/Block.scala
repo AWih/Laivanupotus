@@ -1,6 +1,6 @@
 package peli
 
-class Block(val x: Int, val y: Int, val containsShip: Boolean) {
+class Block(val x: Int, val y: Int) {
    var isIntact = true
    
    
