@@ -8,7 +8,7 @@ trait Player {
   val resources: Array[Int] = this.options.powerUps.toArray
   val fleet: Buffer[Ship] 
   val squaresBombed: Array[Array[Int]]  
-  def isDefeated: Boolean = this.fleet.isEmpty
+  def isDefeated: Boolean = this.fleet.forall(_.isSunk)
   
   def placeFleet: Boolean = {
     val r=new Random()
