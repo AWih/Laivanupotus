@@ -14,6 +14,7 @@ trait Player {
     val r=new Random()
     var a=false
     var attemptNo:Int=0
+    var shipsPlaced:Int=0
     
     for (sh<-options.fleetComposition.indices) {
       
@@ -24,6 +25,10 @@ trait Player {
         val y = r.nextInt(options.gridSize(1))
         val y2=y
         a = placeShip(x,y,x2,y2)
+        if (a) {
+          shipsPlaced += 1
+          attemptNo=0
+        }
       }
       else {
         attemptNo += 1
@@ -32,9 +37,13 @@ trait Player {
         val x = r.nextInt(options.gridSize(0))
         val x2=x
         a = placeShip(x,y,x2,y2)
-      } } while (!a && (attemptNo<50))
+        if (a) {
+          shipsPlaced += 1
+          attemptNo=0
+        }
+      } } while (!a && (attemptNo<150))
     }
-    a
+    (shipsPlaced==options.fleetComposition.size)
   }
   
   def placeShip(x:Int,y:Int,x2:Int,y2:Int): Boolean = {
