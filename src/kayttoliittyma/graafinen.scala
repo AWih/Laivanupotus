@@ -7,70 +7,48 @@ import event._
 import javax.swing.ImageIcon
 
 object graafinen extends SimpleSwingApplication {
-
   
-/**  
-  //testausarvot
-  private val size = Vector[Int](10, 12)
-  private val fleet = Vector[Int](3, 3, 2, 4, 3)
-  private val powerUps = Vector(0)
-  private val aiLevel = 0
-  private val testSettings: Opts = new Opts(size, fleet, powerUps, aiLevel)
-  val peli = new Game(testSettings)
-*/
-  
-  val ikkuna = new MainFrame
-  
-  //TODO korvattava kahdella ruudukkonäkymällä
-  val waterPic = new ImageIcon("img/ver3.png")
-
-  // Components: 
-
-  val commentary = new Label
-  val result = new Label
-  val pictureLabel = new Label
-
-  
-  //  this.updateView() tulee sisältämään seuraavat pelin mukaan päivitettyinä
-  this.commentary.text = "Kirjoita jotain:"
-  this.pictureLabel.icon = this.waterPic
-  
-  val input = new TextField
-
-  this.listenTo(input.keys)
  
+  val picLab1 = new Label
+  val picLab2 = new Label
+  val picLab3 = new Label
+  val picLab4 = new Label
   
-  // Events: 
-  this.reactions += {
-    case keyEvent: KeyPressed =>
-      if (keyEvent.source == this.input && keyEvent.key == Key.Enter) {      
-        val command = this.input.text.trim
-        if (command.nonEmpty) {            
-          this.input.text = ""
-          this.playTurn(command)
+  var pictures = Array(Array(picLab1, picLab2), Array(picLab3, picLab4))
+  
+  var world: Array[Array[Int]] = Array.fill(2, 2)(0)
+  world(1)(0) = 1
+  
+  val waterPic = new ImageIcon("img/water192.png")
+  val ship = new ImageIcon("img/hor1.png")
+  
+  
+  for (x <- 0 until world.size) {
+    for(y <- 0 until world.size) { 
+      world(x)(y) match {          
+        case 0 => {   
+          pictures(x)(y).icon = waterPic           
         }
-      }
-      
+        case 1 => {                
+          pictures(x)(y).icon = ship
+        }
+      }     
+    }
   }
+  
+  val canvas = new GridPanel(2,2)
+ 
+ 
+  pictures.flatten.foreach(canvas.contents += _)
 
   
-  val verticalPanel = new BoxPanel(Orientation.Vertical)
-  verticalPanel.contents += commentary
-  verticalPanel.contents += input
-  verticalPanel.contents += result
-  verticalPanel.contents += pictureLabel
-  
-
-  ikkuna.title = "Battleship"
-  ikkuna.resizable = true
-  ikkuna.contents = verticalPanel
-  
-  private def playTurn(command: String) = {
+  def top = new MainFrame {
     
-    Sound.hutiAani.play()
-    this.result.text = "Kirjoitit tekstin: " + command
+    resizable = false
+    title = "Battleship"
+    contents = canvas
     
   }
   
-  def top = this.ikkuna
+
 }
