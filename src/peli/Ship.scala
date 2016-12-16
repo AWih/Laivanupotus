@@ -26,5 +26,11 @@ class Ship(private val x1: Int,
   
   def isSunk: Boolean = !this.blocks.exists(_.isIntact)
   
-  
+  // Nämä on testiohjelman printtausta varten, näitä ei välttämättä tarvii myöhemmin. En vain 
+  // viitsinyt omin päin muuttaa noita yksityisiä muuttujia julkisiksi.
+  def ekaX = this.x1
+  def tokaX = this.x2
+  def ekaY = this.y1
+  def tokaY = this.y2
+ 
 }
