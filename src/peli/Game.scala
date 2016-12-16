@@ -6,8 +6,6 @@ class Game(val options: Opts) {
   
   val ai: ComputerPlayer = new ComputerPlayer(options)
   
-//  this.human.placeFleet()   laivojen sijoitus voidaan tehdä jo pelaajaobjektien alustuksessa Player-luokassa
-//  this.ai.placeFleet()
   
   def winner: Option[Player] = {
     if (this.ai.isDefeated) Some(this.human) else if (this.human.isDefeated) Some(this.ai) else None
