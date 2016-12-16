@@ -7,7 +7,7 @@ object textUI extends App {
   //testausarvot
   private val size = Vector[Int](10, 12)
   private val fleet = Vector[Int](3, 3, 2, 4, 3)
-  private val powerUps = Vector(0)
+  private val powerUps = Vector(3) //toistaiseksi 1. arvo on 1-säteisten pommien määrä
   private val aiLevel = 0
   private val testSettings: Opts = new Opts(size, fleet, powerUps, aiLevel)
   
@@ -21,8 +21,7 @@ object textUI extends App {
     if (ret == "a") {
       val game = new Game(testSettings)
       game.ai.fleet.foreach(markShip(_, aiShips))
-      println("Vastapelaajan laivat:\n" + view(aiShips))   
-      println("Omat pommitukset:\n" + view(game.human.squaresBombed))
+
       this.run(game)
     }
     if (ret == "l") mainMenu = false
@@ -32,9 +31,13 @@ object textUI extends App {
   def run(game: Game) = {
     var gameOver = false
     while (!gameOver) {
+      println("Vastapelaajan laivat:\n" + view(aiShips))   
+      println("Omat pommitukset:\n" + view(game.human.squaresBombed))
       val command = readLine("syötä komento: ")
       println(game.playTurns(command))
+      gameOver = game.isOver
     }
+    println(s"${game.winner.getOrElse("")} voitti pelin!")
 
   }
 

@@ -6,8 +6,9 @@ class Game(val options: Opts) {
   
   val ai: ComputerPlayer = new ComputerPlayer(options)
   
-//  this.human.placeFleet()   laivojen sijoitus voidaan tehdä jo pelaajaobjektien alustuksessa Player-luokassa
-//  this.ai.placeFleet()
+  human.setEnemy(ai)
+  ai.setEnemy(human)
+  
   
   def winner: Option[Player] = {
     if (this.ai.isDefeated) Some(this.human) else if (this.human.isDefeated) Some(this.ai) else None
@@ -26,7 +27,7 @@ class Game(val options: Opts) {
    */
   def playTurns(command: String): String = {
     val ret: String = this.human.performTurn(command)
-    val ret2: String = this.ai.performTurn(command)  //tekoäly ei varmaan vaadi parametreja
+    val ret2: String = this.ai.performTurn() 
     ret + ret2
     
   }
