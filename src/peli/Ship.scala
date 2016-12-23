@@ -1,5 +1,6 @@
 package peli
 import scala.collection.mutable.Buffer
+import scala.math.max
 
 /*
  * testikommentti
@@ -13,6 +14,10 @@ class Ship(private val x1: Int,
   println("x1:"+x1+" y1:"+y1+" x2:"+x2+" y2:"+y2)
   
   val blocks: Buffer[Block] = Buffer[Block]()
+  
+  val size: Int = max(x2 - x1 + 1, y2 - y1 + 1)
+  
+  val vertical: Boolean = y2 - y1 > x2 - x1
   
   for (xx<-x1 to x2) {
     for (yy<-y1 to y2) {
