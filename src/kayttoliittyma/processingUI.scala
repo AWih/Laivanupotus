@@ -15,7 +15,7 @@ object window extends PApplet {
   
   override def draw(): Unit = {
 
-    val bg = loadImage("testwater.png")
+    val bg = loadImage("img/testwater.png")
     image(bg, 0, 0)
 //    val vesi = loadImage("img/water192.png")
 //    for (i <- 0 until gridHeight) {
