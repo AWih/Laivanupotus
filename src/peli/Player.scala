@@ -93,7 +93,7 @@ trait Player {
   }
   
   def bomb(x: Int, y: Int): String = {
-    val radius = 5  //voisi tulla esim asetuksista. Toisaalta erilaiset koot vaatisivat muutoksia komentojen parsimiseen!
+    val radius = 1  //voisi tulla esim asetuksista. Toisaalta erilaiset koot vaatisivat muutoksia komentojen parsimiseen!
     var ret: String = ""
     val bombsLeft = this.resources(0)
     if (bombsLeft > 0) {

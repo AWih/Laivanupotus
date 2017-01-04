@@ -11,7 +11,9 @@ import scala.collection.mutable.Buffer
 object window extends PApplet with ActionListener{
 
   val sqrSize = 96
+  val offset = 1
   var cGame: Option[Game] = None
+  var cWeapon: String = "shoot"
   
 //kuvien lataus
   
@@ -34,15 +36,14 @@ object window extends PApplet with ActionListener{
   val menuImg = loadImage("img/welcome.png")
   val menuImgB = loadImage("img/welcome_b.png")
   
-  //val tuple = (1, true)
   
+  //imageTable yhdistää laivan kokoon ja suuntaan niitä vastaavan kuvan
   val imageTable: Map[(Int, Boolean), PImage] = Map(
-      (1,true) -> ver1, (1, false) -> hor1,
+      (1, true) -> ver1, (1, false) -> hor1,
       (2, true) -> ver2, (2, false) -> hor2,
       (3, true) -> ver3, (3, false) -> hor3,
       (4, true) -> ver4, (4, false) -> hor4)
 
-      
       
   //testausarvot
   private val gSize = Vector[Int](6, 8)
@@ -58,7 +59,8 @@ object window extends PApplet with ActionListener{
   val gridHeight = this.gSize(1)
   
   override def setup(): Unit = {
-    size(this.gridWidth*this.sqrSize, this.gridHeight*this.sqrSize) //testi-taustakuvan koko
+    size((2 * this.gridWidth + this.offset) * this.sqrSize + 1, this.gridHeight * this.sqrSize + 1) //testi-taustakuvan koko
+    //kokoon lisätään 1, että reunimmaiset ruudukon viivat näkyvät
   }
   
   def drawShip(ship: Ship) = {
@@ -66,24 +68,31 @@ object window extends PApplet with ActionListener{
     image(picture, ship.ekaX * this.sqrSize, ship.ekaY * this.sqrSize)
   }
   
-  override def draw(): Unit = {
-
-    //veden piirtäminnen
-//    val bg = loadImage("img/testwater.png")
-//    image(bg, 0, 0)
-    for (i <- 0 until gridHeight) {
-      for (j <- 0 until gridWidth) {
-        image(water, j * sqrSize, i * sqrSize)
+  def drawWaterAt(topLeftX: Int, topLeftY: Int): Unit = {
+    for (i <- topLeftY until (topLeftY + gridHeight * this.sqrSize) by this.sqrSize) {
+      for (j <- topLeftX until (topLeftX + gridWidth * this.sqrSize) by this.sqrSize) {
+        image(water, j, i)
       }
     }
-    
-    //(ruudukon piirtäminen)
-    for (i <- 0 until gridHeight) {
-      line(0, i*sqrSize, gridWidth*sqrSize, i*sqrSize)
+  }
+  
+  def drawGridAt(topLeftX: Int, topLeftY: Int): Unit = {
+    //horizontal lines
+    for (i <- topLeftY to (topLeftY + this.gridHeight * this.sqrSize) by this.sqrSize) {
+      line(topLeftX, i, topLeftX + this.gridWidth * this.sqrSize, i)
     }
-    for (j <- 0 until gridWidth) {
-      line(j*sqrSize, 0, j*sqrSize, gridHeight*sqrSize)
+    //vertical lines
+    for (j <- topLeftX to (topLeftX + this.gridWidth * this.sqrSize) by this.sqrSize) {
+      line(j, topLeftY, j, topLeftY + this.gridHeight * this.sqrSize)
     }
+  }
+  
+  override def draw(): Unit = {
+
+    background(50)
+    //---OMA RUUDUKKO---
+    this.drawWaterAt(0, 0)
+    this.drawGridAt(0, 0)
     
     //omien laivojen piirtäminen
     val ownFleet: Option[Buffer[Ship]] = this.cGame.map { game => game.human.fleet }
@@ -91,57 +100,105 @@ object window extends PApplet with ActionListener{
       fleet.foreach(this.drawShip(_))
     }
     
-    //vastustajan laivojen piirtäminen
-    //TODO: toteutus
+    //---VASTUSTAJAN RUUDUKKO---
+    this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+    
+    val shotsFired: Option[Array[Array[Int]]] = this.cGame.map { game => game.human.squaresBombed }
+    for (shots <- shotsFired) {
+        /*
+         * squaresBombed sisältää kaiken tiedon, mitä pelaajalla on vastapelaajan ruudukosta
+         * 0: tuntematon ruutu
+         * 1: osuma
+         * 2: huti
+         * 3: paljastettu ruutu
+         */
+      for (j <- 0 until shots.length) {
+        for (i <- 0 until shots(0).length) {
+          shots(j)(i) match {
+            case 0 => image(fog, (j + gridWidth + offset) * sqrSize, i * sqrSize)
+            case 1 => image(smoke, (j + gridWidth + offset) * sqrSize, i * sqrSize)
+            case 2 => image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
+            // case 3: miten paljastetaan ruutu?
+          }
+        }
+      }
+    }
+    
+    this.drawGridAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+    
+    //piirrä tähtäin
+    //TODO: tähtäimen sijaan hiiren vierellä voisi näkyä jokin kuvake, joka kertoo, onko valittu pommi tms.
+    val chR = 10 //crosshair radius
+    line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
+    line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
+    
+    if (this.cGame.isDefined && this.cGame.forall { game => game.isOver }) {
+      textSize(30)
+      text("Peli loppui!", 300, 200)
+      //TODO: kerro kumpi voitti, lisää muotoilu, lopeta komentojen ottaminen?
+    }
   }
   
   
   override def mouseClicked(): Unit = {
-    println(s"klikkaus pisteessä ${this.mouseX}, ${this.mouseY}")
-    var powerUpValittu = false
-    if (!powerUpValittu) {
-      
+    val enemyGridX = (this.gridWidth + this.offset) * this.sqrSize
+    if (this.mouseX >= enemyGridX) {
+      val x = (this.mouseX - enemyGridX) / this.sqrSize
+      val y = this.mouseY / this.sqrSize
+      //--- tässä pelataan varsinainen vuoro! ---
+      this.cGame.foreach { game => game.playTurns(s"${this.cWeapon} $x $y") }
+      //TODO: ota palautusarvo talteen. Ilmoita esim. pommien nykyinen määrä
     }
+
   }
   
   def actionPerformed(e: ActionEvent) = {
     println("nappulaa painettiin")
-    if (e.getActionCommand == "start") {
-      println("uusi peli")
-      this.cGame = Some(new Game(this.testSettings))
+    
+    val cmd: String = e.getActionCommand
+    cmd match {
+      case "start" => this.cGame = Some(new Game(this.testSettings))
+      case "end" => this.cGame = None
+      case "bomb" => this.cWeapon = "bomb"
+      case "cancel" => this.cWeapon = "shoot"
     }
-    else if (e.getActionCommand == "end") {
-      println("lopetettiin peli")
-      this.cGame = None
-    }
+    
   }
   
   def main(args: Array[String]) {
 
     val frame = new javax.swing.JFrame("Laivanupotus")
-
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
     
     val gamePanel = new JPanel
     val buttonPanel = new JPanel
-//    panel.setLayout(new FlowLayout())
+    val controlPanel = new JPanel
     
-    gamePanel.add(this)
     val b1 = new JButton("Uusi peli")
     b1.setActionCommand("start")
     val b2 = new JButton("Lopeta peli")
     b2.setActionCommand("end")
-    buttonPanel.add(b1)
-    buttonPanel.add(b2)
+    val b3 = new JButton("Pommi")
+    b3.setActionCommand("bomb")
+    val b4 = new JButton("Peru")
+    b4.setActionCommand("cancel")
     
     b1.addActionListener(this)
     b2.addActionListener(this)
+    b3.addActionListener(this)
+    b4.addActionListener(this)
+    
+    gamePanel.add(this)
+    buttonPanel.add(b1)
+    buttonPanel.add(b2)
+    controlPanel.add(b3)
+    controlPanel.add(b4)
+    //TODO: lisää pommien (hetkellinen) lukumäärä, + piste-/rahamäärä, muiden power-uppien määrä ?
     
     frame.add(buttonPanel, BorderLayout.PAGE_START)
     frame.add(gamePanel, BorderLayout.CENTER)
+    frame.add(controlPanel, BorderLayout.PAGE_END)
 
-
-//    frame.getContentPane().add(gamePanel)
-//    frame.getContentPane().add(buttonPanel)
     init
     frame.setSize(this.getSize())
     frame.pack
