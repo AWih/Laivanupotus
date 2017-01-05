@@ -6,7 +6,7 @@ class Game(val options: Opts) {
   
   val ai: ComputerPlayer = new ComputerPlayer(options)
   
-  human.setEnemy(ai)
+  human.setEnemy(ai) 
   ai.setEnemy(human)
   
   
@@ -27,7 +27,7 @@ class Game(val options: Opts) {
    */
   def playTurns(command: String): String = {
     val ret: String = this.human.performTurn(command)
-    val ret2: String = this.ai.performTurn() 
+    val ret2: String = if (!this.isOver) this.ai.performTurn() else ("")
     ret + ret2
     
   }
