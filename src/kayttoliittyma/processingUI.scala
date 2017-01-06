@@ -94,6 +94,7 @@ object window extends PApplet with ActionListener{
     this.drawWaterAt(0, 0)
     this.drawGridAt(0, 0)
     
+    
     //omien laivojen piirtäminen
     val ownFleet: Option[Buffer[Ship]] = this.cGame.map { game => game.human.fleet }
     for (fleet <- ownFleet) {
@@ -124,7 +125,25 @@ object window extends PApplet with ActionListener{
       }
     }
     
+    val shotsReceived: Option[Array[Array[Int]]] = this.cGame.map { game => game.ai.squaresBombed } //ei kovin eleganttia kopioida yltä, mutta halusin nopean tavan visualisoida testaukseen
+    for (shots <- shotsReceived) {
+      for (j <- 0 until shots.length) {
+        for (i <- 0 until shots(0).length) {
+          shots(j)(i) match {
+            case 0 => //image(fog, (j) * sqrSize, i * sqrSize)
+            case 1 => image(smoke, (j) * sqrSize, i * sqrSize)
+            case 2 => image(ripple, (j) * sqrSize, i * sqrSize)
+          }
+        }
+      }
+    }
+    
     this.drawGridAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+    
+    if (!this.cGame.isDefined) {
+      menuImg.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
+      image(menuImg,0,0)
+    }
     
     //piirrä tähtäin
     //TODO: tähtäimen sijaan hiiren vierellä voisi näkyä jokin kuvake, joka kertoo, onko valittu pommi tms.
@@ -132,9 +151,24 @@ object window extends PApplet with ActionListener{
     line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
     line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
     
+    //pommitähtäin
+    if (this.cWeapon == "bomb" && this.cGame.isDefined) {
+      noFill()
+      textSize(30)
+      for (r <- 1 to 3) {                        //bomb-metodin radius on maaginen väliaikaismuuttuja, ei viitattavissa
+      ellipse(mouseX, mouseY, chR*3*r, chR*3*r)  
+      }
+      text(this.cGame.get.human.resources(0),mouseX-chR*4,mouseY)
+    }
+    
     if (this.cGame.isDefined && this.cGame.forall { game => game.isOver }) {
+      tint(255, 200)
+      menuImgB.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
+      image(menuImgB,0,0)
+      tint(255, 255)
       textSize(30)
       text("Peli loppui!", 300, 200)
+      text(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!", 350, 250) // "Lopeta peli" tuottaa joskus exceptionin: None.get
       //TODO: kerro kumpi voitti, lisää muotoilu, lopeta komentojen ottaminen?
     }
   }
