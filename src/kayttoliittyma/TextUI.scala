@@ -5,13 +5,14 @@ import scala.io.StdIn._
 object textUI extends App {
 
   //testausarvot
-  private val size = Vector[Int](10, 12)
-  private val fleet = Vector[Int](3, 3, 2, 4, 3)
+  private val size = Vector[Int](6, 6)
+  private val fleet = Vector[Int](3,3,4,4,3)
   private val powerUps = Vector(3) //toistaiseksi 1. arvo on 1-säteisten pommien määrä
   private val aiLevel = 0
   private val testSettings: Opts = new Opts(size, fleet, powerUps, aiLevel)
   
   private val aiShips = Array.fill(size(0), size(1))(0)
+  private val humanShips = Array.fill(size(0), size(1))(0)
   
   println("Laivanupotuspelin testi-UI")
 
@@ -21,7 +22,7 @@ object textUI extends App {
     if (ret == "a") {
       val game = new Game(testSettings)
       game.ai.fleet.foreach(markShip(_, aiShips))
-
+      game.human.fleet.foreach(markShip(_, humanShips))
       this.run(game)
     }
     if (ret == "l") mainMenu = false
@@ -31,8 +32,10 @@ object textUI extends App {
   def run(game: Game) = {
     var gameOver = false
     while (!gameOver) {
-      println("Vastapelaajan laivat:\n" + view(aiShips))   
+      println("Omat laivat:\n" + view(humanShips))   
       println("Omat pommitukset:\n" + view(game.human.squaresBombed))
+      println("Vastapelaajan laivat:\n" + view(aiShips))
+      println("Vastapelaajan pommitukset:\n" + view(game.ai.squaresBombed))
       val command = readLine("syötä komento: ")
       println(game.playTurns(command))
       gameOver = game.isOver
@@ -51,9 +54,9 @@ object textUI extends App {
     if (x1 == x2 && y1 == y2) {            // Ykkösen kokoiset laivat    
       table(x1)(y1) = 1
     } else if (x1 == x2 && y1 != y2) {     // Vaakasuorassa olevat laivat
-      (y1 to y2).foreach(table(x1)(_) = 1)
-    }else {                                // Pystysuorassa olevat laivat
-      (x1 to x2).foreach(table(_)(y1) = 1) 
+      (y1 to y2).foreach(table(x1)(_) = ship.size)
+    } else {                                // Pystysuorassa olevat laivat
+      (x1 to x2).foreach(table(_)(y1) = ship.size) 
     }
   }
   

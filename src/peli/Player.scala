@@ -3,6 +3,7 @@ import scala.collection.mutable.Buffer
 import scala.util.Random
 
 trait Player {
+  val r = new Random()
   var score: Int
   val options: Opts
   val resources: Array[Int] = this.options.powerUps.toArray
@@ -21,7 +22,7 @@ trait Player {
   def setEnemy(newEnemy: Player) = this.enemy = newEnemy
   
   def placeFleet: Boolean = {
-    val r=new Random()
+    
     var a=false
     var attemptNo:Int=0
     var shipsPlaced:Int=0
@@ -81,14 +82,21 @@ trait Player {
     
   }
   
-  def shoot(x: Int, y: Int): String = {
+  def shoot(x: Int, y: Int): Boolean = {
     if(this.enemy.checkHit(x, y)) {
       this.squaresBombed(x)(y) = 1
-      "Osuma!\n"
+      true
     }
     else{
       this.squaresBombed(x)(y) = 2
-      "Huti!\n"
+      false
+    }
+  }
+  
+  def hitToString(hit: Boolean): String = {
+    hit match {
+      case true => "Osuma!\n"
+      case false => "Huti!\n"
     }
   }
   
@@ -130,7 +138,7 @@ class HumanPlayer(val options: Opts) extends Player {
     val y: Int = parts(2).toInt
     var outcome = ""
     if (action == "shoot") {
-      outcome = this.shoot(x, y)
+      outcome = hitToString(this.shoot(x, y))
     }
     else if (action == "bomb") {
       outcome = this.bomb(x, y)
@@ -140,14 +148,76 @@ class HumanPlayer(val options: Opts) extends Player {
   }
 }
 
+
 class ComputerPlayer(val options: Opts) extends Player {
   var score = 0
   val fleet: Buffer[Ship] = Buffer[Ship]()
   val squaresBombed = Array.fill(options.gridSize(0), options.gridSize(1))(0)
   this.placeFleet
-  
-  def performTurn() = {
-    //TODO: ai:n toteutus
-    "tietokoneen vuoro"
+  private var previousHit: Option[(Int, Int)] = None
+ 
+  /** Koittaa valita mitkä tahansa olemassa olevat koordinaatit, joihin ei vielä ole ammuttu */
+  def randomFreeSquare() = {
+    val freeSquares: Seq[(Int, Int)] = for {
+      i <- 0 until this.squaresBombed.size
+      j <- 0 until this.squaresBombed(i).size
+      if (this.squaresBombed(i)(j) == 0)
+    } yield (i, j)
+    
+    if (!freeSquares.isEmpty) {
+      freeSquares(r.nextInt(freeSquares.size))
+    } else {
+      // Virhe tapaus, koko kenttä oli jo täynnä!!!
+      (0, 0)
+    }
   }
+   
+  /** Tekee listan olemassa olevista naapurikoordinaateista */
+  def neighborCoords(x: Int, y: Int): List[(Int, Int)] = {
+    val w = options.gridSize(0)
+    val h = options.gridSize(1)
+    def inBounds(x: Int, y: Int): Boolean = x >= 0 && x < w && y >= 0 && y < h
+    List( (-1, 0), (1, 0), (0, -1), (0, 1) )
+      .map(t => (x + t._1, y + t._2) ).filter(t => inBounds(t._1, t._2))
+  }
+  
+  /** Koittaa valita edellisen ampumisen vierestä koordinaatit, joihin ei ole vielä ammuttu */
+  def shootClose(priviousHit: (Int, Int)): (Int, Int) = {
+    val list = neighborCoords(priviousHit._1, priviousHit._2)
+    val freeSquares = list.filter(squareIsFree)
+    if (freeSquares.isEmpty) {
+      randomFreeSquare()
+    } else {
+      freeSquares(r.nextInt(freeSquares.size))
+    }
+  }
+  
+  /** Palauttaa true, jos koordinaatteihin ei ole vielä ammuttu, false jos on */
+  def squareIsFree(t: (Int, Int)) = (this.squaresBombed(t._1)(t._2) == 0) 
+  
+  def performTurn() = {    
+    /*	
+    * Jos edellinen ampuminen osui, pyrkii ampumaan viereen, muuten ihan minne vaan. 
+    * Tarkistaa kummassakin tapauksessa, että ei ammu uudestaan sellaisilla koordinaateilla, 
+    * joilla on jo ampunut.
+    */  
+    val whereToShoot: (Int, Int) = previousHit match {
+      case Some(prevHit) =>
+        shootClose(prevHit)
+      case None =>
+        randomFreeSquare()       
+    }    
+    
+    val hit = shoot(whereToShoot._1, whereToShoot._2)
+    val outcome = hitToString(hit)    
+    // Alla päivitetään "previousHit"
+    if (hit) {
+      previousHit = Some(whereToShoot)
+    } else {
+      previousHit = None
+    }
+    
+    s"Tietokone ampui. ${outcome}\n"
+  }
+  
 }
