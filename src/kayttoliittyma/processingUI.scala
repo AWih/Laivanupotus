@@ -7,6 +7,8 @@ import javax.swing._
 import java.awt.BorderLayout
 import java.awt.event._
 import scala.collection.mutable.Buffer
+import scala.math.min
+import scala.math.max
 
 object window extends PApplet with ActionListener{
 
@@ -68,6 +70,13 @@ object window extends PApplet with ActionListener{
     image(picture, ship.ekaX * this.sqrSize, ship.ekaY * this.sqrSize)
   }
   
+  def drawFoeShip(ship: Ship) = {
+    if (ship.isSunk) {
+      val picture: PImage = this.imageTable(ship.size, ship.vertical)
+      image(picture, (ship.ekaX + offset + gridWidth) * this.sqrSize, ship.ekaY * this.sqrSize)
+    }
+  }
+  
   def drawWaterAt(topLeftX: Int, topLeftY: Int): Unit = {
     for (i <- topLeftY until (topLeftY + gridHeight * this.sqrSize) by this.sqrSize) {
       for (j <- topLeftX until (topLeftX + gridWidth * this.sqrSize) by this.sqrSize) {
@@ -101,8 +110,15 @@ object window extends PApplet with ActionListener{
       fleet.foreach(this.drawShip(_))
     }
     
+    
     //---VASTUSTAJAN RUUDUKKO---
     this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+    
+    //vastustajan uponneet laivat piirretään? TODO: voisi riippua vaikeusasteesta?
+    val foeFleet: Option[Buffer[Ship]] = this.cGame.map{ game => game.ai.fleet }
+    for (fleet <- foeFleet) {
+      fleet.foreach(this.drawFoeShip(_))
+    }
     
     val shotsFired: Option[Array[Array[Int]]] = this.cGame.map { game => game.human.squaresBombed }
     for (shots <- shotsFired) {
@@ -148,8 +164,26 @@ object window extends PApplet with ActionListener{
     //piirrä tähtäin
     //TODO: tähtäimen sijaan hiiren vierellä voisi näkyä jokin kuvake, joka kertoo, onko valittu pommi tms.
     val chR = 10 //crosshair radius
-    line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
-    line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
+    //line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
+    //line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
+    
+    //ruututähtäin
+    if (this.cWeapon == "bomb") {
+      val chX = max(mouseX/sqrSize - 1, 0)
+      val chY = max(mouseY/sqrSize - 1, 0)
+      val chX2 = min(mouseX/sqrSize + 1, gridWidth*2+offset-1)
+      val chY2 = min(mouseY/sqrSize + 1, gridHeight-1)
+      noFill()
+      rect(chX*sqrSize+8, chY*sqrSize+8,(chX2-chX+1)*sqrSize-16,(chY2-chY+1)*sqrSize-16)
+    }
+    else {
+      val chX = mouseX/sqrSize
+      val chY = mouseY/sqrSize
+      val chX2 = mouseX/sqrSize
+      val chY2 = mouseY/sqrSize
+      noFill()
+      rect(chX*sqrSize+8, chY*sqrSize+8,sqrSize-16,sqrSize-16)
+    }
     
     //pommitähtäin
     if (this.cWeapon == "bomb" && this.cGame.isDefined) {
