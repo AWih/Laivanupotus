@@ -196,14 +196,17 @@ object window extends PApplet with ActionListener{
     }
     
     if (this.cGame.isDefined && this.cGame.forall { game => game.isOver }) {
+      println("ehto on tarkistettu")
       tint(255, 200)
       menuImgB.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
       image(menuImgB,0,0)
       tint(255, 255)
       textSize(30)
       text("Peli loppui!", 300, 200)
-      text(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!", 350, 250) // "Lopeta peli" tuottaa joskus exceptionin: None.get
-      //TODO: kerro kumpi voitti, lisää muotoilu, lopeta komentojen ottaminen?
+      println("tulostetaan voittaja...")
+      println(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!")
+      //text(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!", 350, 250) // "Lopeta peli" tuottaa joskus exceptionin: None.get
+      //TODO: kerro kumpi voitti, lisää muotoilu, lopeta komentojen ottaminen? Siirä pelin lopetus tänne!
     }
   }
   
