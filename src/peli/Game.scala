@@ -26,9 +26,19 @@ class Game(val options: Opts) {
    * tilanmuutokset ja UI voi vain esim tulostaa ruudukon uudestaan.
    */
   def playTurns(command: String): String = {
-    val ret: String = this.human.performTurn(command)
-    val ret2: String = if (!this.isOver) this.ai.performTurn() else ("")
-    ret + ret2
+    var turnDesc:String=""
     
+    val ret: String = this.human.performTurn(command)
+    var ret2:String = ""
+    turnDesc += ret
+    if (!ret.contains("Osuma")) {
+      do {
+        ret2 = if (!this.isOver) this.ai.performTurn() else ("")
+        turnDesc += ret2
+      } while (ret2.contains("Osuma"))
+    }
+    //ret + ret2
+
+    turnDesc
   }
 }
