@@ -19,6 +19,13 @@ object window extends PApplet with ActionListener{
   var startGameFlag: Boolean = false
   var endGameFlag: Boolean = false
   
+  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+  //nappulat luodaan jo tässä, jotta niitä voi muokata pelitilanteen mukaan
+  val b1 = new JButton("Uusi peli")
+  val b2 = new JButton("Lopeta peli")    
+  var b3 = new JButton("Pommi")
+  val b4 = new JButton("Peru")
+  
 //kuvien lataus
   
   //pystysuorat laivat
@@ -243,6 +250,11 @@ object window extends PApplet with ActionListener{
         //--- tässä pelataan varsinainen vuoro! ---
         this.cGame.foreach { game => game.playTurns(s"${this.cWeapon} $x $y") }
         //TODO: ota palautusarvo talteen. Ilmoita esim. pommien nykyinen määrä
+        //jos pommit loppuvat, ase vaihdetaan tavalliseksi ja pommitus otetaan pois käytöstä
+        if (this.cGame.get.human.resources(0) <= 0)  {
+          this.cWeapon = "shoot"
+          b3.setEnabled(false) //nappulaa ei voi painaa
+        }
       }
     }
   }
@@ -263,19 +275,14 @@ object window extends PApplet with ActionListener{
   def main(args: Array[String]) {
 
     val frame = new javax.swing.JFrame("Laivanupotus")
-    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
     
     val gamePanel = new JPanel
     val buttonPanel = new JPanel
     val controlPanel = new JPanel
     
-    val b1 = new JButton("Uusi peli")
     b1.setActionCommand("start")
-    val b2 = new JButton("Lopeta peli")
     b2.setActionCommand("end")
-    val b3 = new JButton("Pommi")
     b3.setActionCommand("bomb")
-    val b4 = new JButton("Peru")
     b4.setActionCommand("cancel")
     
     b1.addActionListener(this)
