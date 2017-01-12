@@ -16,6 +16,8 @@ object window extends PApplet with ActionListener{
   val offset = 1
   var cGame: Option[Game] = None
   var cWeapon: String = "shoot"
+  var startGameFlag: Boolean = false
+  var endGameFlag: Boolean = false
   
 //kuvien lataus
   
@@ -32,8 +34,8 @@ object window extends PApplet with ActionListener{
   //muut
   val ripple = loadImage("img/96/ripple96overlay.png")
   val smoke = loadImage("img/96/smoke96overlay.png")
-  val water = loadImage("img/96/water96grid.png")
-  val fog = loadImage("img/96/fog96grid.png")
+  val water = loadImage("img/96/water96.png")
+  val fog = loadImage("img/96/fog96.png")
   //valikko
   val menuImg = loadImage("img/welcome.png")
   val menuImgB = loadImage("img/welcome_b.png")
@@ -71,7 +73,7 @@ object window extends PApplet with ActionListener{
   }
   
   def drawFoeShip(ship: Ship) = {
-    if (ship.isSunk) {
+    if (ship.isSunk || this.cGame.forall(_.isOver)) {
       val picture: PImage = this.imageTable(ship.size, ship.vertical)
       image(picture, (ship.ekaX + offset + gridWidth) * this.sqrSize, ship.ekaY * this.sqrSize)
     }
@@ -96,15 +98,63 @@ object window extends PApplet with ActionListener{
     }
   }
   
-  override def draw(): Unit = {
-
-    background(50)
-    //---OMA RUUDUKKO---
-    this.drawWaterAt(0, 0)
-    this.drawGridAt(0, 0)
+  def drawTargeting() {
+        //piirrä tähtäin
+    //TODO: tähtäimen sijaan hiiren vierellä voisi näkyä jokin kuvake, joka kertoo, onko valittu pommi tms.
+    val chR = 10 //crosshair radius
+    //line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
+    //line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
     
+        //ruututähtäin
+    if (this.cWeapon == "bomb") {
+      val chX = max(mouseX/sqrSize - 1, gridWidth+offset)
+      val chY = max(mouseY/sqrSize - 1, 0)
+      val chX2 = min(mouseX/sqrSize + 1, gridWidth*2+offset-1)
+      val chY2 = min(mouseY/sqrSize + 1, gridHeight-1)
+      noFill()
+      rect(chX*sqrSize+8, chY*sqrSize+8,(chX2-chX+1)*sqrSize-16,(chY2-chY+1)*sqrSize-16)
+    }
+    else {
+      val chX = mouseX/sqrSize
+      val chY = mouseY/sqrSize
+      val chX2 = mouseX/sqrSize
+      val chY2 = mouseY/sqrSize
+      noFill()
+      rect(chX*sqrSize+8, chY*sqrSize+8,sqrSize-16,sqrSize-16)
+    }
     
-    //omien laivojen piirtäminen
+    //pommitähtäin (ellipsit)
+    if (this.cWeapon == "bomb" && this.cGame.isDefined) {
+      noFill()
+      textSize(30)
+      for (r <- 1 to 3) {                        //bomb-metodin radius on maaginen väliaikaismuuttuja, ei viitattavissa
+      ellipse(mouseX, mouseY, chR*3*r, chR*3*r)  
+      }
+      text(this.cGame.get.human.resources(0),mouseX-chR*4,mouseY)
+    } 
+  }
+  
+  def drawEndScreen() {
+      //println("ehto on tarkistettu")
+      tint(255, 200)
+      menuImgB.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
+      image(menuImgB,0,0)
+      tint(255, 255)
+      textSize(30)
+      text("Peli loppui!", 300, 200)
+      //println("tulostetaan voittaja...")
+      //println(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!")
+      text(if (this.cGame.get.winner.get == this.cGame.get.human) "Voitit pelin!" else "Hävisit pelin!", 350, 250)
+      //TODO:lisää muotoilu, lopeta komentojen ottaminen?
+    }
+  
+  def drawStartScreen() {
+      menuImg.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
+      image(menuImg,0,0)
+    }
+  
+  def drawGameState() {
+      //omien laivojen piirtäminen
     val ownFleet: Option[Buffer[Ship]] = this.cGame.map { game => game.human.fleet }
     for (fleet <- ownFleet) {
       fleet.foreach(this.drawShip(_))
@@ -112,7 +162,6 @@ object window extends PApplet with ActionListener{
     
     
     //---VASTUSTAJAN RUUDUKKO---
-    this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
     
     //vastustajan uponneet laivat piirretään? TODO: voisi riippua vaikeusasteesta?
     val foeFleet: Option[Buffer[Ship]] = this.cGame.map{ game => game.ai.fleet }
@@ -132,7 +181,7 @@ object window extends PApplet with ActionListener{
       for (j <- 0 until shots.length) {
         for (i <- 0 until shots(0).length) {
           shots(j)(i) match {
-            case 0 => image(fog, (j + gridWidth + offset) * sqrSize, i * sqrSize)
+            case 0 => if (!this.cGame.get.isOver) image(fog, (j + gridWidth + offset) * sqrSize, i * sqrSize)
             case 1 => image(smoke, (j + gridWidth + offset) * sqrSize, i * sqrSize)
             case 2 => image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
             // case 3: miten paljastetaan ruutu?
@@ -153,83 +202,58 @@ object window extends PApplet with ActionListener{
         }
       }
     }
-    
-    this.drawGridAt((this.gridWidth + this.offset) * this.sqrSize, 0)
-    
-    if (!this.cGame.isDefined) {
-      menuImg.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
-      image(menuImg,0,0)
+  }
+  
+  override def draw(): Unit = {
+    if (this.startGameFlag) { //aloitetaan peli lipun perusteella
+      this.cGame = Some(new Game(this.testSettings))
+      this.startGameFlag = false
     }
-    
-    //piirrä tähtäin
-    //TODO: tähtäimen sijaan hiiren vierellä voisi näkyä jokin kuvake, joka kertoo, onko valittu pommi tms.
-    val chR = 10 //crosshair radius
-    //line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
-    //line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
-    
-    //ruututähtäin
-    if (this.cWeapon == "bomb") {
-      val chX = max(mouseX/sqrSize - 1, 0)
-      val chY = max(mouseY/sqrSize - 1, 0)
-      val chX2 = min(mouseX/sqrSize + 1, gridWidth*2+offset-1)
-      val chY2 = min(mouseY/sqrSize + 1, gridHeight-1)
-      noFill()
-      rect(chX*sqrSize+8, chY*sqrSize+8,(chX2-chX+1)*sqrSize-16,(chY2-chY+1)*sqrSize-16)
-    }
-    else {
-      val chX = mouseX/sqrSize
-      val chY = mouseY/sqrSize
-      val chX2 = mouseX/sqrSize
-      val chY2 = mouseY/sqrSize
-      noFill()
-      rect(chX*sqrSize+8, chY*sqrSize+8,sqrSize-16,sqrSize-16)
-    }
-    
-    //pommitähtäin
-    if (this.cWeapon == "bomb" && this.cGame.isDefined) {
-      noFill()
-      textSize(30)
-      for (r <- 1 to 3) {                        //bomb-metodin radius on maaginen väliaikaismuuttuja, ei viitattavissa
-      ellipse(mouseX, mouseY, chR*3*r, chR*3*r)  
+    background(50)
+    if (this.cGame.isDefined) {
+      this.drawWaterAt(0, 0)
+      this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+      drawGameState()
+      if (this.cGame.forall { game => game.isOver }) { //peli päättynyt
+        drawEndScreen()
       }
-      text(this.cGame.get.human.resources(0),mouseX-chR*4,mouseY)
+      else { // peli käynnissä mutta ei päättynyt
+        this.drawGridAt(0, 0)
+        this.drawGridAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+        if (mouseX/sqrSize >= gridWidth+offset) drawTargeting()
+      }
     }
-    
-    if (this.cGame.isDefined && this.cGame.forall { game => game.isOver }) {
-      println("ehto on tarkistettu")
-      tint(255, 200)
-      menuImgB.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
-      image(menuImgB,0,0)
-      tint(255, 255)
-      textSize(30)
-      text("Peli loppui!", 300, 200)
-      println("tulostetaan voittaja...")
-      println(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!")
-      //text(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!", 350, 250) // "Lopeta peli" tuottaa joskus exceptionin: None.get
-      //TODO: kerro kumpi voitti, lisää muotoilu, lopeta komentojen ottaminen? Siirä pelin lopetus tänne!
+    else { //peli ei alkanut
+      drawStartScreen()
+    }   
+    //pelin lopetus lipun perusteella
+    if (this.endGameFlag) {
+      this.cGame = None
+      this.endGameFlag = false
     }
   }
   
   
   override def mouseClicked(): Unit = {
-    val enemyGridX = (this.gridWidth + this.offset) * this.sqrSize
-    if (this.mouseX >= enemyGridX) {
-      val x = (this.mouseX - enemyGridX) / this.sqrSize
-      val y = this.mouseY / this.sqrSize
-      //--- tässä pelataan varsinainen vuoro! ---
-      this.cGame.foreach { game => game.playTurns(s"${this.cWeapon} $x $y") }
-      //TODO: ota palautusarvo talteen. Ilmoita esim. pommien nykyinen määrä
+    if (this.cGame.forall(!_.isOver)) {
+      val enemyGridX = (this.gridWidth + this.offset) * this.sqrSize
+      if (this.mouseX >= enemyGridX) {
+        val x = (this.mouseX - enemyGridX) / this.sqrSize
+        val y = this.mouseY / this.sqrSize
+        //--- tässä pelataan varsinainen vuoro! ---
+        this.cGame.foreach { game => game.playTurns(s"${this.cWeapon} $x $y") }
+        //TODO: ota palautusarvo talteen. Ilmoita esim. pommien nykyinen määrä
+      }
     }
-
   }
   
   def actionPerformed(e: ActionEvent) = {
-    println("nappulaa painettiin")
+    //println("nappulaa painettiin")
     
     val cmd: String = e.getActionCommand
     cmd match {
-      case "start" => this.cGame = Some(new Game(this.testSettings))
-      case "end" => this.cGame = None
+      case "start" => this.startGameFlag = true
+      case "end" => this.endGameFlag = true
       case "bomb" => this.cWeapon = "bomb"
       case "cancel" => this.cWeapon = "shoot"
     }
