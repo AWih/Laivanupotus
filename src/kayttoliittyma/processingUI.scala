@@ -214,6 +214,7 @@ object window extends PApplet with ActionListener{
   override def draw(): Unit = {
     if (this.startGameFlag) { //aloitetaan peli lipun perusteella
       this.cGame = Some(new Game(this.testSettings))
+      this.b3.setEnabled(true)
       this.startGameFlag = false
     }
     background(50)
