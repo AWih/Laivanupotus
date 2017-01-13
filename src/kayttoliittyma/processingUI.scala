@@ -16,6 +16,7 @@ import scala.math.max
  * Asetukset (musiikille ym., sekä pelin toiminnoille erikseen) (sis. mukautettu-asetukset)
  * Tietokonepelaajan vaikeustasot ja pommien käyttö
  * (lisää power-upeja, esim. alueen paljastava toiminto)
+ * -> checkHit:ille joka vaiheessa uusi parametri, joka mahdollistaa tilaa muuttamattoman tarkistuksen
  * power-up -nappuloiden toiminta loppuun
  * visuaaliset lisäefektit
  * raportti
@@ -227,7 +228,8 @@ object window extends PApplet with ActionListener{
          * 0: tuntematon ruutu
          * 1: osuma
          * 2: huti
-         * 3: paljastettu ruutu
+         * 3: paljastettu ruutu (laiva)
+         * 4: paljastettu ruutu (tyhjä)
          */
       for (j <- 0 until shots.length) {
         for (i <- 0 until shots(0).length) {
@@ -242,7 +244,8 @@ object window extends PApplet with ActionListener{
             }
             case 1 => image(smoke, (j + gridWidth + offset) * sqrSize, i * sqrSize)
             case 2 => image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
-            // case 3: miten paljastetaan ruutu?
+            // case 3
+            // case 4
           }
         }
       }

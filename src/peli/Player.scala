@@ -13,7 +13,8 @@ trait Player {
    * 0: tuntematon ruutu
    * 1: osuma
    * 2: huti
-   * 3: paljastettu ruutu
+   * 3: paljastettu ruutu (laiva)
+   * 4: paljastettu ruutu (tyhjä)
    */
   val squaresBombed: Array[Array[Int]]
   def isDefeated: Boolean = this.fleet.forall(_.isSunk)
