@@ -19,7 +19,6 @@ import scala.math.max
  * power-up -nappuloiden toiminta loppuun
  * visuaaliset lisäefektit
  * raportti
- * ruudukon piirtäminen
  * veden piirtäminen
  * taustakuvan skaalaus
  */
@@ -83,7 +82,7 @@ object window extends PApplet with ActionListener{
   val ripple = loadImage("img/96/ripple96overlay.png")
   val smoke = loadImage("img/96/smoke96overlay.png")
   val water = loadImage("img/96/water96.png")
-  val fog = loadImage("img/96/fog96.png")
+  //val fog = loadImage("img/96/fog96.png")
   //valikko
   val menuImg = loadImage("img/welcome.png")
   val menuImgB = loadImage("img/welcome_b.png")
@@ -205,6 +204,7 @@ object window extends PApplet with ActionListener{
     }
   
   def drawGameState() {
+    
     //omien laivojen piirtäminen
     val ownFleet: Option[Buffer[Ship]] = this.cGame.map { game => game.human.fleet }
     for (fleet <- ownFleet) {
@@ -232,7 +232,14 @@ object window extends PApplet with ActionListener{
       for (j <- 0 until shots.length) {
         for (i <- 0 until shots(0).length) {
           shots(j)(i) match {
-            case 0 => if (!this.cGame.get.isOver) image(fog, (j + gridWidth + offset) * sqrSize, i * sqrSize)
+            case 0 => if (!this.cGame.get.isOver) {
+              //tint(255, 128)
+              noStroke()
+              fill(255, 128)
+              rect((j + gridWidth + offset) * sqrSize, i * sqrSize, sqrSize, sqrSize)
+              stroke(255,255,255, 128)
+              noFill()
+            }
             case 1 => image(smoke, (j + gridWidth + offset) * sqrSize, i * sqrSize)
             case 2 => image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
             // case 3: miten paljastetaan ruutu?
@@ -280,15 +287,16 @@ object window extends PApplet with ActionListener{
     if (this.cGame.isDefined) {
       this.drawWaterAt(0, 0)
       this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
-      drawGameState()
       
       //peli päättynyt
       if (this.cGame.forall { game => game.isOver }) { 
-        drawEndScreen()
+        this.drawGameState()
+        this.drawEndScreen()
       }
       else { // peli käynnissä mutta ei päättynyt
         this.drawGridAt(0, 0)
         this.drawGridAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+        this.drawGameState()
         if (mouseX/sqrSize >= gridWidth+offset) drawTargeting()
       }
     }
