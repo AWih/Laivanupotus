@@ -10,6 +10,20 @@ import scala.collection.mutable.Buffer
 import scala.math.min
 import scala.math.max
 
+//TEHTÄVÄLISTA
+/*
+ * Käyttöliittymään valintapainike musiikille
+ * Asetukset (musiikille ym., sekä pelin toiminnoille erikseen) (sis. mukautettu-asetukset)
+ * Tietokonepelaajan vaikeustasot ja pommien käyttö
+ * (lisää power-upeja, esim. alueen paljastava toiminto)
+ * power-up -nappuloiden toiminta loppuun
+ * visuaaliset lisäefektit
+ * raportti
+ * ruudukon piirtäminen
+ * veden piirtäminen
+ * taustakuvan skaalaus
+ */
+
 object window extends PApplet with ActionListener{
 
   val sqrSize = 96
