@@ -16,7 +16,7 @@ import scala.math.max
  * Asetukset (musiikille ym., sekä pelin toiminnoille erikseen) (sis. mukautettu-asetukset)
  * Tietokonepelaajan vaikeustasot ja pommien käyttö
  * (lisää power-upeja, esim. alueen paljastava toiminto)
- * -> checkHit:ille joka vaiheessa uusi parametri, joka mahdollistaa tilaa muuttamattoman tarkistuksen
+ * TEHTY: -> checkHit:ille joka vaiheessa uusi parametri, joka mahdollistaa tilaa muuttamattoman tarkistuksen
  * power-up -nappuloiden toiminta loppuun
  * visuaaliset lisäefektit
  * raportti

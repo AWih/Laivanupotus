@@ -29,8 +29,8 @@ class Ship(private val x1: Int,
    * checkHit tarkistaa, osuiko ampuninen kyseiseen laivaan. Palauttaa true osumasta, muuten false.
    * Jos löytyy osuma, päivitetään tieto vastaavaan laivan osaan, eli osuman saanut osa "upotetaan".
    */
-  def checkHit(x: Int, y: Int): Boolean = {
-    this.blocks.exists(_.checkHit(x, y))
+  def checkHit(x: Int, y: Int, damage:Boolean): Boolean = {
+    this.blocks.exists(_.checkHit(x, y, damage))
   }
   
   def isSunk: Boolean = !this.blocks.exists(_.isIntact)
