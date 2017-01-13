@@ -87,6 +87,8 @@ object window extends PApplet with ActionListener{
   //valikko
   val menuImg = loadImage("img/welcome.png")
   val menuImgB = loadImage("img/welcome_b.png")
+  var resizedMenuImg = menuImg.get
+  var resizedMenuImgB = menuImgB.get
   
   
   //imageTable yhdistää laivan kokoon ja suuntaan niitä vastaavan kuvan
@@ -111,6 +113,10 @@ object window extends PApplet with ActionListener{
   override def setup(): Unit = {
     this.currSettings = this.newSettings
     size((2 * this.gridWidth + this.offset) * this.sqrSize + 1, this.gridHeight * this.sqrSize + 1) //testi-taustakuvan koko
+    resizedMenuImg = menuImg.get
+    resizedMenuImgB = menuImgB.get
+    resizedMenuImg.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
+    resizedMenuImgB.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
     //kokoon lisätään 1, että reunimmaiset ruudukon viivat näkyvät
   }
   
@@ -184,8 +190,7 @@ object window extends PApplet with ActionListener{
   def drawEndScreen() {
       //println("ehto on tarkistettu")
       tint(255, 200)
-      menuImgB.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
-      image(menuImgB,0,0)
+      image(resizedMenuImgB,0,0)
       tint(255, 255)
       textSize(30)
       text("Peli loppui!", 300, 200)
@@ -196,8 +201,7 @@ object window extends PApplet with ActionListener{
   }
   
   def drawStartScreen() {
-      menuImg.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
-      image(menuImg,0,0)
+      image(resizedMenuImg,0,0)
     }
   
   def drawGameState() {
