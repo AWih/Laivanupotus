@@ -15,6 +15,8 @@ object window extends PApplet with ActionListener{
   val sqrSize = 96
   val offset = 1
   var cGame: Option[Game] = None
+  var currSettings: Opts = Opts.createWithDifficulty("medium")
+  var newSettings: Opts = Opts.createWithDifficulty("medium")
   var cWeapon: String = "shoot"
   var startGameFlag: Boolean = false
   var endGameFlag: Boolean = false
@@ -26,6 +28,31 @@ object window extends PApplet with ActionListener{
   var b3 = new JButton("Pommi")
   val b4 = new JButton("Peru")
   
+  val d1 = new JRadioButton("Helppo")
+  val d2 = new JRadioButton("Keskitaso")
+  val d3 = new JRadioButton("Vaikea")
+  val d4 = new JRadioButton("Mukautettu")
+  
+  //varsinainen pääikkuna, joka luodaan jo tässä, jotta ikkunan kokoa voidaan myöhemmin muuttaa
+  val bigFrame = new javax.swing.JFrame("Laivanupotus")
+
+  val dRb = new ButtonGroup()
+  dRb.add(d1)
+  dRb.add(d2)
+  dRb.add(d3)
+  dRb.add(d4)
+  
+  /*
+   * Pelissä käytettävät aseet/power-upit ovat:
+   * shoot (oletus)
+   * bomb
+   * 
+   */
+  val PUButtons: Map[String, JButton] = Map (
+      "shoot" -> this.b4, "bomb" -> this.b3
+      )
+  
+ 
 //kuvien lataus
   
   //pystysuorat laivat
@@ -57,19 +84,18 @@ object window extends PApplet with ActionListener{
 
       
   //testausarvot
-  private val gSize = Vector[Int](6, 8)
-  private val fleet = Vector[Int](3, 3, 2, 4, 1)
-  private val powerUps = Vector(3) //toistaiseksi 1. arvo on 1-säteisten pommien määrä
-  private val aiLevel = 0
-  private val testSettings: Opts = new Opts(gSize, fleet, powerUps, aiLevel)  
+//  private val gSize = Vector[Int](8, 8)
+//  private val fleet = Vector[Int](3, 3, 2, 4, 1)
+//  private val powerUps = Vector(3) //toistaiseksi 1. arvo on 1-säteisten pommien määrä
+//  private val aiLevel = 0
+//  private val testSettings: Opts = new Opts(gSize, fleet, powerUps, aiLevel)  
 
-  
-//  val gridWidth = this.cGame.options.gridSize(0)
-//  val gridHeight = this.cGame.options.gridSize(1)
-  val gridWidth = this.gSize(0)
-  val gridHeight = this.gSize(1)
+
+  def gridWidth = this.currSettings.gridSize(0)
+  def gridHeight = this.currSettings.gridSize(1)
   
   override def setup(): Unit = {
+    this.currSettings = this.newSettings
     size((2 * this.gridWidth + this.offset) * this.sqrSize + 1, this.gridHeight * this.sqrSize + 1) //testi-taustakuvan koko
     //kokoon lisätään 1, että reunimmaiset ruudukon viivat näkyvät
   }
@@ -153,7 +179,7 @@ object window extends PApplet with ActionListener{
       //println(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!")
       text(if (this.cGame.get.winner.get == this.cGame.get.human) "Voitit pelin!" else "Hävisit pelin!", 350, 250)
       //TODO:lisää muotoilu, lopeta komentojen ottaminen?
-    }
+  }
   
   def drawStartScreen() {
       menuImg.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
@@ -161,21 +187,21 @@ object window extends PApplet with ActionListener{
     }
   
   def drawGameState() {
-      //omien laivojen piirtäminen
+    //omien laivojen piirtäminen
     val ownFleet: Option[Buffer[Ship]] = this.cGame.map { game => game.human.fleet }
     for (fleet <- ownFleet) {
       fleet.foreach(this.drawShip(_))
     }
     
     
-    //---VASTUSTAJAN RUUDUKKO---
-    
-    //vastustajan uponneet laivat piirretään? TODO: voisi riippua vaikeusasteesta?
+    //vastustajan uponneet laivat 
+    //TODO: voisi riippua vaikeusasteesta?
     val foeFleet: Option[Buffer[Ship]] = this.cGame.map{ game => game.ai.fleet }
     for (fleet <- foeFleet) {
       fleet.foreach(this.drawFoeShip(_))
     }
     
+    //lisätään osumamerkit sekä sumu vastustajan ruudukon päälle
     val shotsFired: Option[Array[Array[Int]]] = this.cGame.map { game => game.human.squaresBombed }
     for (shots <- shotsFired) {
         /*
@@ -197,6 +223,7 @@ object window extends PApplet with ActionListener{
       }
     }
     
+    //osumamerkit oman ruudukon päälle
     val shotsReceived: Option[Array[Array[Int]]] = this.cGame.map { game => game.ai.squaresBombed } //ei kovin eleganttia kopioida yltä, mutta halusin nopean tavan visualisoida testaukseen
     for (shots <- shotsReceived) {
       for (j <- 0 until shots.length) {
@@ -211,18 +238,34 @@ object window extends PApplet with ActionListener{
     }
   }
   
+  //--VARSINAINEN PIIRTÄMINEN SEKÄ PELIN ALOITUS JA LOPETUS--
   override def draw(): Unit = {
-    if (this.startGameFlag) { //aloitetaan peli lipun perusteella
-      this.cGame = Some(new Game(this.testSettings))
+    
+    //--aloitetaan peli lipun perusteella--
+    if (this.startGameFlag) {
+      if (this.d3.isSelected()) this.newSettings = Opts.createWithDifficulty("hard")
+      else if (this.d2.isSelected()) this.newSettings = Opts.createWithDifficulty("medium")
+      else if (this.d1.isSelected()) this.newSettings = Opts.createWithDifficulty("easy")
+      //TODO: mukautetut asetukset
+      
+      this.setup()
+      this.bigFrame.setSize(this.getSize())
+      this.bigFrame.pack()
+      this.cGame = Some(new Game(this.newSettings))
+
       this.b3.setEnabled(true)
       this.startGameFlag = false
     }
+    
     background(50)
+    //toiminnot joka päivityksen yhteydessä
     if (this.cGame.isDefined) {
       this.drawWaterAt(0, 0)
       this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
       drawGameState()
-      if (this.cGame.forall { game => game.isOver }) { //peli päättynyt
+      
+      //peli päättynyt
+      if (this.cGame.forall { game => game.isOver }) { 
         drawEndScreen()
       }
       else { // peli käynnissä mutta ei päättynyt
@@ -234,7 +277,9 @@ object window extends PApplet with ActionListener{
     else { //peli ei alkanut
       drawStartScreen()
     }   
-    //pelin lopetus lipun perusteella
+    
+    
+    //--pelin lopetus lipun perusteella--
     if (this.endGameFlag) {
       this.cGame = None
       this.endGameFlag = false
@@ -275,7 +320,7 @@ object window extends PApplet with ActionListener{
   
   def main(args: Array[String]) {
 
-    val frame = new javax.swing.JFrame("Laivanupotus")
+    //varsinainen pääikkuna luodaan jo olion alustuksessa
     
     val gamePanel = new JPanel
     val buttonPanel = new JPanel
@@ -294,20 +339,25 @@ object window extends PApplet with ActionListener{
     gamePanel.add(this)
     buttonPanel.add(b1)
     buttonPanel.add(b2)
+    buttonPanel.add(d1)
+    buttonPanel.add(d2)
+    d2.setSelected(true) //keskivaikea vaikeustaso valitaan oletuksena
+    buttonPanel.add(d3)
+    
     controlPanel.add(b3)
     controlPanel.add(b4)
     //TODO: lisää pommien (hetkellinen) lukumäärä, + piste-/rahamäärä, muiden power-uppien määrä ?
     
-    frame.add(buttonPanel, BorderLayout.PAGE_START)
-    frame.add(gamePanel, BorderLayout.CENTER)
-    frame.add(controlPanel, BorderLayout.PAGE_END)
+    bigFrame.add(buttonPanel, BorderLayout.PAGE_START)
+    bigFrame.add(gamePanel, BorderLayout.CENTER)
+    bigFrame.add(controlPanel, BorderLayout.PAGE_END)
 
     init
-    frame.setSize(this.getSize())
-    frame.pack
-    frame.setVisible(true)
-    frame.setLocationRelativeTo(null)
-    frame.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE)
+    bigFrame.setSize(this.getSize())
+    bigFrame.pack
+    bigFrame.setVisible(true)
+    bigFrame.setLocationRelativeTo(null)
+    bigFrame.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE)
   }
   
 }
