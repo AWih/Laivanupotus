@@ -21,8 +21,9 @@ import scala.math.abs
  * power-up -nappuloiden toiminta loppuun
  * TEHTY(?): visuaaliset lisäefektit
  * raportti
- * veden piirtäminen
+ * TEHTY: veden piirtäminen
  * TEHTY: taustakuvan skaalaus
+ * ohjeet ja tarina(?)
  */
 
 object window extends PApplet with ActionListener{
@@ -84,6 +85,8 @@ object window extends PApplet with ActionListener{
   val ripple = loadImage("img/96/ripple96overlay.png")
   val smoke = loadImage("img/96/smoke96overlay.png")
   val water = loadImage("img/96/water96.png")
+  val ocean = loadImage("img/ocean2.png")
+  var resizedOcean = ocean.get
   //val fog = loadImage("img/96/fog96.png")
   //valikko
   val menuImg = loadImage("img/welcome.png")
@@ -121,6 +124,7 @@ object window extends PApplet with ActionListener{
     resizedMenuImgB = menuImgB.get
     smartResize(resizedMenuImg)
     smartResize(resizedMenuImgB)
+    if (this.width>resizedOcean.width || this.height>resizedOcean.height) smartResize(ocean)
     picFade = 0
     textScroll = 0
     //kokoon lisätään 1, että reunimmaiset ruudukon viivat näkyvät
@@ -176,7 +180,7 @@ object window extends PApplet with ActionListener{
     val chR = 10 //crosshair radius
     //line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
     //line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
-    
+    stroke(0,255)
         //ruututähtäin
     if (this.cWeapon == "bomb") {
       val chX = max(mouseX/sqrSize - 1, gridWidth+offset)
@@ -197,11 +201,13 @@ object window extends PApplet with ActionListener{
     
     //pommitähtäin (ellipsit)
     if (this.cWeapon == "bomb" && this.cGame.isDefined) {
+      stroke(0,255)
       noFill()
       textSize(30)
       for (r <- 1 to 3) {                        //bomb-metodin radius on maaginen väliaikaismuuttuja, ei viitattavissa
       ellipse(mouseX, mouseY, chR*3*r, chR*3*r)  
       }
+      fill(0,255)
       text(this.cGame.get.human.resources(0),mouseX-chR*4,mouseY)
     } 
   }
@@ -227,7 +233,7 @@ object window extends PApplet with ActionListener{
     }
   
   def drawGameState() {
-    
+    stroke(255,128)
     //omien laivojen piirtäminen
     val ownFleet: Option[Buffer[Ship]] = this.cGame.map { game => game.human.fleet }
     for (fleet <- ownFleet) {
@@ -310,17 +316,21 @@ object window extends PApplet with ActionListener{
     background(50)
     //toiminnot joka päivityksen yhteydessä
     if (this.cGame.isDefined) {
-      this.drawWaterAt(0, 0)
-      this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
-      
+      //this.drawWaterAt(0, 0)
+      //this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+      drawCentered(ocean)
       //peli päättynyt
       if (this.cGame.forall { game => game.isOver }) { 
         this.drawGameState()
         this.drawEndScreen()
       }
       else { // peli käynnissä mutta ei päättynyt
+        stroke(255,128)
         this.drawGridAt(0, 0)
         this.drawGridAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+        fill(50,255)
+        noStroke()
+        rect(this.gridWidth*sqrSize+1,0,sqrSize-1,gridHeight*sqrSize)
         this.drawGameState()
         if (mouseX/sqrSize >= gridWidth+offset) drawTargeting()
       }
