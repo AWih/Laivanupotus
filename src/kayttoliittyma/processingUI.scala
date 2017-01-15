@@ -130,11 +130,11 @@ object window extends PApplet with ActionListener{
     //kokoon lisätään 1, että reunimmaiset ruudukon viivat näkyvät
   }
   
-  def smartResize(img:PImage) = { //skaalaa kuvan kattamaan peliruudun rikkomatta kuvasuhdetta 16/9
+  def smartResize(img:PImage) = { //skaalaa kuvan kattamaan peliruudun rikkomatta kuvasuhdetta
     img.resize(
-              (if (this.height/9 < this.width/16) (gridWidth*2+offset)*sqrSize
-              else gridHeight*sqrSize*16/9),
-              (if (this.height/9 < this.width/16) (gridWidth*2+offset)*sqrSize*9/16
+              (if (1.0*this.height/img.height < 1.0*this.width/img.width) (gridWidth*2+offset)*sqrSize
+              else gridHeight*sqrSize*img.width/img.height),
+              (if (1.0*this.height/img.height < 1.0*this.width/img.width) (gridWidth*2+offset)*sqrSize*img.height/img.width
               else gridHeight*sqrSize)
               )
   }
