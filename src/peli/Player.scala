@@ -84,7 +84,7 @@ trait Player {
   }
   
   def shoot(x: Int, y: Int): Boolean = {
-    if(this.enemy.checkHit(x, y)) {
+    if(this.enemy.checkHit(x, y, true)) {
       this.squaresBombed(x)(y) = 1
       true
     }
@@ -120,7 +120,7 @@ trait Player {
   }
   
   
-  def checkHit(x:Int,y:Int):Boolean = this.fleet.exists(_.checkHit(x, y))
+  def checkHit(x:Int,y:Int,damage:Boolean):Boolean = this.fleet.exists(_.checkHit(x, y, damage))
 }
 
 class HumanPlayer(val options: Opts) extends Player {
