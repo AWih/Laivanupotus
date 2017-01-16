@@ -101,6 +101,43 @@ trait Player {
     }
   }
   
+  /*
+   * Vakoilu paljastaa pelaajalle yhden vihollisen ruudun ja palauttaa true jos paljastui laivan osa, muuten false.
+   * Jos ruutu on ennestään tunnettu, ei tehdä mitään ja palautetaan false
+   */
+  def revealEnemySqr(x: Int, y: Int): Boolean = {
+    if (this.squaresBombed(x)(y) == 0) {
+      if (this.enemy.checkHit(x, y, false)) {
+        this.squaresBombed(x)(y) = 3 //3 vastaa paljastunutta laivan osaa
+        true
+      }
+      else {
+        this.squaresBombed(x)(y) = 4 //4 vastaa paljastunutta tyhjää ruutua
+        false
+      }
+    }
+    else false
+  }
+  
+  def useRadar(x: Int, y: Int): String = {
+    //tutka käyttää ruudun paljastusta samalla tavalla kuin pommitus ampumista
+    val radius = 1  //voisi tulla esim asetuksista. Toisaalta erilaiset koot vaatisivat muutoksia komentojen parsimiseen!
+    var ret: String = ""
+    val radarUsesLeft = this.resources(1)
+    if (radarUsesLeft > 0) {
+      for (i <- (y - radius) to (y + radius)) {
+        for (j <- (x - radius) to (x + radius)) {
+          if (i >= 0 && j >= 0 && i < this.options.gridSize(1) && j < this.options.gridSize(0)) {
+            ret += this.revealEnemySqr(j, i)
+          }
+        }
+      }
+      this.resources(1) = radarUsesLeft - 1
+      ret + s"${this.resources(1)} tutkan käyttö(ä) jäljellä\n"
+    }
+    else "Tutkan käytöt loppu!\n"
+  }
+  
   def bomb(x: Int, y: Int): String = {
     val radius = 1  //voisi tulla esim asetuksista. Toisaalta erilaiset koot vaatisivat muutoksia komentojen parsimiseen!
     var ret: String = ""
@@ -121,6 +158,7 @@ trait Player {
   
   
   def checkHit(x:Int,y:Int,damage:Boolean):Boolean = this.fleet.exists(_.checkHit(x, y, damage))
+  
 }
 
 class HumanPlayer(val options: Opts) extends Player {
@@ -143,6 +181,9 @@ class HumanPlayer(val options: Opts) extends Player {
     }
     else if (action == "bomb") {
       outcome = this.bomb(x, y)
+    }
+    else if (action == "radar") {
+      outcome = this.useRadar(x, y)
     }
     else outcome = "väärä komento"
     outcome
