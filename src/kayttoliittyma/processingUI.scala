@@ -41,8 +41,9 @@ object window extends PApplet with ActionListener{
   //nappulat luodaan jo tässä, jotta niitä voi muokata pelitilanteen mukaan
   val b1 = new JButton("Uusi peli")
   val b2 = new JButton("Lopeta peli")    
-  var b3 = new JButton("Pommi")
+  val b3 = new JButton("Pommi")
   val b4 = new JButton("Peru")
+  val b5 = new JButton("Tutka")
   
   val d1 = new JRadioButton("Helppo")
   val d2 = new JRadioButton("Keskitaso")
@@ -64,10 +65,12 @@ object window extends PApplet with ActionListener{
    * bomb
    * 
    */
-  val PUButtons: Map[String, JButton] = Map (
-      "shoot" -> this.b4, "bomb" -> this.b3
-      )
   
+  /*
+  val PUButtons: Map[String, JButton] = Map (
+      "shoot" -> this.b4, "bomb" -> this.b3, "radar" -> this.b5
+      )
+  */
  
 //kuvien lataus
   
@@ -182,7 +185,7 @@ object window extends PApplet with ActionListener{
     //line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
     stroke(0,255)
         //ruututähtäin
-    if (this.cWeapon == "bomb") {
+    if (this.cWeapon == "bomb" || this.cWeapon == "radar") {
       val chX = max(mouseX/sqrSize - 1, gridWidth+offset)
       val chY = max(mouseY/sqrSize - 1, 0)
       val chX2 = min(mouseX/sqrSize + 1, gridWidth*2+offset-1)
@@ -209,6 +212,18 @@ object window extends PApplet with ActionListener{
       }
       fill(0,255)
       text(this.cGame.get.human.resources(0),mouseX-chR*4,mouseY)
+    } 
+    
+    //tutkan tähtäin
+    if (this.cWeapon == "radar" && this.cGame.isDefined) {
+      stroke(0, 150, 0)
+      noFill()
+      textSize(30)
+      for (r <- 1 to 8) {                        //radar-metodin radius on maaginen väliaikaismuuttuja, ei viitattavissa
+      ellipse(mouseX, mouseY, chR*3*r, chR*3*r)  
+      }
+      fill(0,255)
+      text(this.cGame.get.human.resources(1),mouseX-chR*4,mouseY)
     } 
   }
   
@@ -272,8 +287,23 @@ object window extends PApplet with ActionListener{
             }
             case 1 => image(smoke, (j + gridWidth + offset) * sqrSize, i * sqrSize)
             case 2 => image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
-            // case 3
-            // case 4
+            //tilanteissa 3 ja 4 piirretään sumu ja siihen päälle tutkan lukema
+            case 3 => {
+              noStroke()
+              fill(255, 128)
+              rect((j + gridWidth + offset) * sqrSize, i * sqrSize, sqrSize, sqrSize)
+              stroke(255,255,255, 128)
+              fill(0,255,0)
+              ellipse((j + gridWidth + offset) * sqrSize + sqrSize/2, i * sqrSize + sqrSize/2, 10, 10)
+            }
+            case 4 => {
+              noStroke()
+              fill(255, 128)
+              rect((j + gridWidth + offset) * sqrSize, i * sqrSize, sqrSize, sqrSize)
+              stroke(255,255,255, 128)
+              fill(50, 50, 50)
+              ellipse((j + gridWidth + offset) * sqrSize + sqrSize/2, i * sqrSize + sqrSize/2, 10, 10)
+            }
           }
         }
       }
@@ -310,6 +340,7 @@ object window extends PApplet with ActionListener{
       this.cGame = Some(new Game(this.newSettings))
 
       this.b3.setEnabled(true)
+      this.b5.setEnabled(true)
       this.startGameFlag = false
     }
     
@@ -357,10 +388,14 @@ object window extends PApplet with ActionListener{
         //--- tässä pelataan varsinainen vuoro! ---
         this.cGame.foreach { game => game.playTurns(s"${this.cWeapon} $x $y") }
         //TODO: ota palautusarvo talteen. Ilmoita esim. pommien nykyinen määrä
-        //jos pommit loppuvat, ase vaihdetaan tavalliseksi ja pommitus otetaan pois käytöstä
-        if (this.cGame.get.human.resources(0) <= 0)  {
+        //jos jokin power-up loppuu kesken, sen nappula laitetaan pois käytöstä ja vaihdetaan oletusaseeseen
+        if (this.cGame.get.human.resources(0) <= 0 && this.cWeapon == "bomb")  {
           this.cWeapon = "shoot"
           b3.setEnabled(false) //nappulaa ei voi painaa
+        }
+        else if (this.cGame.get.human.resources(1) <= 0 && this.cWeapon == "radar") {
+          this.cWeapon = "shoot"
+          b5.setEnabled(false)
         }
       }
     }
@@ -375,6 +410,7 @@ object window extends PApplet with ActionListener{
       case "end" => this.endGameFlag = true
       case "bomb" => this.cWeapon = "bomb"
       case "cancel" => this.cWeapon = "shoot"
+      case "radar" => this.cWeapon = "radar"
     }
     
   }
@@ -391,11 +427,13 @@ object window extends PApplet with ActionListener{
     b2.setActionCommand("end")
     b3.setActionCommand("bomb")
     b4.setActionCommand("cancel")
+    b5.setActionCommand("radar")
     
     b1.addActionListener(this)
     b2.addActionListener(this)
     b3.addActionListener(this)
     b4.addActionListener(this)
+    b5.addActionListener(this)
     
     gamePanel.add(this)
     buttonPanel.add(b1)
@@ -406,6 +444,7 @@ object window extends PApplet with ActionListener{
     buttonPanel.add(d3)
     
     controlPanel.add(b3)
+    controlPanel.add(b5)
     controlPanel.add(b4)
     //TODO: lisää pommien (hetkellinen) lukumäärä, + piste-/rahamäärä, muiden power-uppien määrä ?
     
