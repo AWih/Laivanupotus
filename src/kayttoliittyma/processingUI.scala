@@ -286,9 +286,9 @@ object window extends PApplet with ActionListener{
               noFill()
             }
             case 1 => image(smoke, (j + gridWidth + offset) * sqrSize, i * sqrSize)
-            case 2 => image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
+            case 2 => //image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
             //tilanteissa 3 ja 4 piirretään sumu ja siihen päälle tutkan lukema
-            case 3 => {
+            case 3 => if (!this.cGame.get.isOver) {
               noStroke()
               fill(255, 128)
               rect((j + gridWidth + offset) * sqrSize, i * sqrSize, sqrSize, sqrSize)
@@ -296,7 +296,7 @@ object window extends PApplet with ActionListener{
               fill(0,255,0)
               ellipse((j + gridWidth + offset) * sqrSize + sqrSize/2, i * sqrSize + sqrSize/2, 10, 10)
             }
-            case 4 => {
+            case 4 => if (!this.cGame.get.isOver) {
               noStroke()
               fill(255, 128)
               rect((j + gridWidth + offset) * sqrSize, i * sqrSize, sqrSize, sqrSize)
