@@ -9,6 +9,7 @@ import java.awt.event._
 import scala.collection.mutable.Buffer
 import scala.math.min
 import scala.math.max
+import scala.math.abs
 
 //TEHTÄVÄLISTA
 /*
@@ -16,12 +17,13 @@ import scala.math.max
  * Asetukset (musiikille ym., sekä pelin toiminnoille erikseen) (sis. mukautettu-asetukset)
  * Tietokonepelaajan vaikeustasot ja pommien käyttö
  * (lisää power-upeja, esim. alueen paljastava toiminto)
- * -> checkHit:ille joka vaiheessa uusi parametri, joka mahdollistaa tilaa muuttamattoman tarkistuksen
+ * TEHTY: -> checkHit:ille joka vaiheessa uusi parametri, joka mahdollistaa tilaa muuttamattoman tarkistuksen
  * power-up -nappuloiden toiminta loppuun
- * visuaaliset lisäefektit
+ * TEHTY(?): visuaaliset lisäefektit
  * raportti
- * veden piirtäminen
- * taustakuvan skaalaus
+ * TEHTY: veden piirtäminen
+ * TEHTY: taustakuvan skaalaus
+ * ohjeet ja tarina(?)
  */
 
 object window extends PApplet with ActionListener{
@@ -39,8 +41,9 @@ object window extends PApplet with ActionListener{
   //nappulat luodaan jo tässä, jotta niitä voi muokata pelitilanteen mukaan
   val b1 = new JButton("Uusi peli")
   val b2 = new JButton("Lopeta peli")    
-  var b3 = new JButton("Pommi")
+  val b3 = new JButton("Pommi")
   val b4 = new JButton("Peru")
+  val b5 = new JButton("Tutka")
   
   val d1 = new JRadioButton("Helppo")
   val d2 = new JRadioButton("Keskitaso")
@@ -62,10 +65,12 @@ object window extends PApplet with ActionListener{
    * bomb
    * 
    */
-  val PUButtons: Map[String, JButton] = Map (
-      "shoot" -> this.b4, "bomb" -> this.b3
-      )
   
+  /*
+  val PUButtons: Map[String, JButton] = Map (
+      "shoot" -> this.b4, "bomb" -> this.b3, "radar" -> this.b5
+      )
+  */
  
 //kuvien lataus
   
@@ -83,12 +88,17 @@ object window extends PApplet with ActionListener{
   val ripple = loadImage("img/96/ripple96overlay.png")
   val smoke = loadImage("img/96/smoke96overlay.png")
   val water = loadImage("img/96/water96.png")
+  val ocean = loadImage("img/ocean2.png")
+  var resizedOcean = ocean.get
   //val fog = loadImage("img/96/fog96.png")
   //valikko
   val menuImg = loadImage("img/welcome.png")
   val menuImgB = loadImage("img/welcome_b.png")
   var resizedMenuImg = menuImg.get
   var resizedMenuImgB = menuImgB.get
+  
+  var picFade = 0
+  var textScroll = 0
   
   
   //imageTable yhdistää laivan kokoon ja suuntaan niitä vastaavan kuvan
@@ -115,9 +125,25 @@ object window extends PApplet with ActionListener{
     size((2 * this.gridWidth + this.offset) * this.sqrSize + 1, this.gridHeight * this.sqrSize + 1) //testi-taustakuvan koko
     resizedMenuImg = menuImg.get
     resizedMenuImgB = menuImgB.get
-    resizedMenuImg.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
-    resizedMenuImgB.resize((gridWidth*2+offset)*sqrSize,gridHeight*sqrSize)
+    smartResize(resizedMenuImg)
+    smartResize(resizedMenuImgB)
+    if (this.width>resizedOcean.width || this.height>resizedOcean.height) smartResize(ocean)
+    picFade = 0
+    textScroll = 0
     //kokoon lisätään 1, että reunimmaiset ruudukon viivat näkyvät
+  }
+  
+  def smartResize(img:PImage) = { //skaalaa kuvan kattamaan peliruudun rikkomatta kuvasuhdetta
+    img.resize(
+              (if (1.0*this.height/img.height < 1.0*this.width/img.width) (gridWidth*2+offset)*sqrSize
+              else gridHeight*sqrSize*img.width/img.height),
+              (if (1.0*this.height/img.height < 1.0*this.width/img.width) (gridWidth*2+offset)*sqrSize*img.height/img.width
+              else gridHeight*sqrSize)
+              )
+  }
+  
+  def drawCentered(img:PImage) = { //piirtää kuvan keskelle peliruutua
+    image(img,-(img.width-this.width)/2,-(img.height-this.height)/2)
   }
   
   def drawShip(ship: Ship) = {
@@ -126,7 +152,7 @@ object window extends PApplet with ActionListener{
   }
   
   def drawFoeShip(ship: Ship) = {
-    if (ship.isSunk || this.cGame.forall(_.isOver)) {
+    if ((this.cGame.forall(_.options.aiLevel<=2) && ship.isSunk) || this.cGame.forall(_.isOver)) { //uponneet laivat näkyvät jos ailevel 2 tai vähemmän, kaikki aina pelin päätyttyä
       val picture: PImage = this.imageTable(ship.size, ship.vertical)
       image(picture, (ship.ekaX + offset + gridWidth) * this.sqrSize, ship.ekaY * this.sqrSize)
     }
@@ -157,9 +183,9 @@ object window extends PApplet with ActionListener{
     val chR = 10 //crosshair radius
     //line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
     //line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
-    
+    stroke(0,255)
         //ruututähtäin
-    if (this.cWeapon == "bomb") {
+    if (this.cWeapon == "bomb" || this.cWeapon == "radar") {
       val chX = max(mouseX/sqrSize - 1, gridWidth+offset)
       val chY = max(mouseY/sqrSize - 1, 0)
       val chX2 = min(mouseX/sqrSize + 1, gridWidth*2+offset-1)
@@ -178,34 +204,51 @@ object window extends PApplet with ActionListener{
     
     //pommitähtäin (ellipsit)
     if (this.cWeapon == "bomb" && this.cGame.isDefined) {
+      stroke(0,255)
       noFill()
       textSize(30)
       for (r <- 1 to 3) {                        //bomb-metodin radius on maaginen väliaikaismuuttuja, ei viitattavissa
       ellipse(mouseX, mouseY, chR*3*r, chR*3*r)  
       }
+      fill(0,255)
       text(this.cGame.get.human.resources(0),mouseX-chR*4,mouseY)
+    } 
+    
+    //tutkan tähtäin
+    if (this.cWeapon == "radar" && this.cGame.isDefined) {
+      stroke(0, 150, 0)
+      noFill()
+      textSize(30)
+      for (r <- 1 to 8) {                        //radar-metodin radius on maaginen väliaikaismuuttuja, ei viitattavissa
+      ellipse(mouseX, mouseY, chR*3*r, chR*3*r)  
+      }
+      fill(0,255)
+      text(this.cGame.get.human.resources(1),mouseX-chR*4,mouseY)
     } 
   }
   
   def drawEndScreen() {
       //println("ehto on tarkistettu")
-      tint(255, 200)
-      image(resizedMenuImgB,0,0)
+      picFade = min(230,picFade+1/*abs(picFade-200)/40*/)
+      textScroll = min(textScroll+abs(textScroll-300)/30,this.height/2)
+      tint(255, picFade)
+      fill(255,255)
+      drawCentered(resizedMenuImgB)
       tint(255, 255)
       textSize(30)
-      text("Peli loppui!", 300, 200)
+      text("Peli loppui!", min(300, textScroll), 200)
       //println("tulostetaan voittaja...")
       //println(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!")
-      text(if (this.cGame.get.winner.get == this.cGame.get.human) "Voitit pelin!" else "Hävisit pelin!", 350, 250)
+      text(if (this.cGame.get.winner.get == this.cGame.get.human) "Voitit pelin!" else "Hävisit pelin!", 350, min(250,textScroll))
       //TODO:lisää muotoilu, lopeta komentojen ottaminen?
   }
   
   def drawStartScreen() {
-      image(resizedMenuImg,0,0)
+      drawCentered(resizedMenuImg)
     }
   
   def drawGameState() {
-    
+    stroke(255,128)
     //omien laivojen piirtäminen
     val ownFleet: Option[Buffer[Ship]] = this.cGame.map { game => game.human.fleet }
     for (fleet <- ownFleet) {
@@ -243,9 +286,24 @@ object window extends PApplet with ActionListener{
               noFill()
             }
             case 1 => image(smoke, (j + gridWidth + offset) * sqrSize, i * sqrSize)
-            case 2 => image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
-            // case 3
-            // case 4
+            case 2 => //image(ripple, (j + gridWidth + offset) * sqrSize, i * sqrSize)
+            //tilanteissa 3 ja 4 piirretään sumu ja siihen päälle tutkan lukema
+            case 3 => if (!this.cGame.get.isOver) {
+              noStroke()
+              fill(255, 128)
+              rect((j + gridWidth + offset) * sqrSize, i * sqrSize, sqrSize, sqrSize)
+              stroke(255,255,255, 128)
+              fill(0,255,0)
+              ellipse((j + gridWidth + offset) * sqrSize + sqrSize/2, i * sqrSize + sqrSize/2, 10, 10)
+            }
+            case 4 => if (!this.cGame.get.isOver) {
+              noStroke()
+              fill(255, 128)
+              rect((j + gridWidth + offset) * sqrSize, i * sqrSize, sqrSize, sqrSize)
+              stroke(255,255,255, 128)
+              fill(50, 50, 50)
+              ellipse((j + gridWidth + offset) * sqrSize + sqrSize/2, i * sqrSize + sqrSize/2, 10, 10)
+            }
           }
         }
       }
@@ -282,23 +340,28 @@ object window extends PApplet with ActionListener{
       this.cGame = Some(new Game(this.newSettings))
 
       this.b3.setEnabled(true)
+      this.b5.setEnabled(true)
       this.startGameFlag = false
     }
     
     background(50)
     //toiminnot joka päivityksen yhteydessä
     if (this.cGame.isDefined) {
-      this.drawWaterAt(0, 0)
-      this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
-      
+      //this.drawWaterAt(0, 0)
+      //this.drawWaterAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+      drawCentered(ocean)
       //peli päättynyt
       if (this.cGame.forall { game => game.isOver }) { 
         this.drawGameState()
         this.drawEndScreen()
       }
       else { // peli käynnissä mutta ei päättynyt
+        stroke(255,128)
         this.drawGridAt(0, 0)
         this.drawGridAt((this.gridWidth + this.offset) * this.sqrSize, 0)
+        fill(50,255)
+        noStroke()
+        rect(this.gridWidth*sqrSize+1,0,sqrSize-1,gridHeight*sqrSize)
         this.drawGameState()
         if (mouseX/sqrSize >= gridWidth+offset) drawTargeting()
       }
@@ -325,10 +388,14 @@ object window extends PApplet with ActionListener{
         //--- tässä pelataan varsinainen vuoro! ---
         this.cGame.foreach { game => game.playTurns(s"${this.cWeapon} $x $y") }
         //TODO: ota palautusarvo talteen. Ilmoita esim. pommien nykyinen määrä
-        //jos pommit loppuvat, ase vaihdetaan tavalliseksi ja pommitus otetaan pois käytöstä
-        if (this.cGame.get.human.resources(0) <= 0)  {
+        //jos jokin power-up loppuu kesken, sen nappula laitetaan pois käytöstä ja vaihdetaan oletusaseeseen
+        if (this.cGame.get.human.resources(0) <= 0 && this.cWeapon == "bomb")  {
           this.cWeapon = "shoot"
           b3.setEnabled(false) //nappulaa ei voi painaa
+        }
+        else if (this.cGame.get.human.resources(1) <= 0 && this.cWeapon == "radar") {
+          this.cWeapon = "shoot"
+          b5.setEnabled(false)
         }
       }
     }
@@ -343,6 +410,7 @@ object window extends PApplet with ActionListener{
       case "end" => this.endGameFlag = true
       case "bomb" => this.cWeapon = "bomb"
       case "cancel" => this.cWeapon = "shoot"
+      case "radar" => this.cWeapon = "radar"
     }
     
   }
@@ -359,11 +427,13 @@ object window extends PApplet with ActionListener{
     b2.setActionCommand("end")
     b3.setActionCommand("bomb")
     b4.setActionCommand("cancel")
+    b5.setActionCommand("radar")
     
     b1.addActionListener(this)
     b2.addActionListener(this)
     b3.addActionListener(this)
     b4.addActionListener(this)
+    b5.addActionListener(this)
     
     gamePanel.add(this)
     buttonPanel.add(b1)
@@ -374,6 +444,7 @@ object window extends PApplet with ActionListener{
     buttonPanel.add(d3)
     
     controlPanel.add(b3)
+    controlPanel.add(b5)
     controlPanel.add(b4)
     //TODO: lisää pommien (hetkellinen) lukumäärä, + piste-/rahamäärä, muiden power-uppien määrä ?
     
