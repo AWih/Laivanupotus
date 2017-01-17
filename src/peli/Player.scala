@@ -257,7 +257,7 @@ class ComputerPlayer(val options: Opts) extends Player {
     s"Tietokone ampui. ${hitToString(hit)}\n" // Isoa pommia käytettäessä väittää tekstiUi:ssä "Huti!" vaikka osuma tai osumia olisi tullutkin.
   }
   
-  def performTurn: String = {
+  def performTurn(): String = {
      if (options.aiLevel == 1) (performEasy)
      else (performMedOrDif)
   }
