@@ -57,7 +57,7 @@ object Sound {
   def miss = new Sound("Sound/lava.wav")
   def hit = new Sound("Sound/explosion5.wav")
   def radar = new Sound("Sound/radar1.wav")
-  def bomb = new Sound("Sound/explosioin1.wav")
+  def bomb = new Sound("Sound/explosion1.wav")
   def backroundMusic = new Sound("Sound/wind1.wav")
 
 }
