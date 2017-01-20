@@ -6,6 +6,7 @@ import javax.swing.JFrame
 import javax.swing._
 import java.awt.BorderLayout
 import java.awt.event._
+import java.awt.Dimension
 import scala.collection.mutable.Buffer
 import scala.math.min
 import scala.math.max
@@ -45,6 +46,7 @@ object window extends PApplet with ActionListener{
   
   //varsinainen pääikkuna, joka luodaan jo tässä, jotta ikkunan kokoa voidaan myöhemmin muuttaa
   val bigFrame = new javax.swing.JFrame("Laivanupotus")
+  val helpFrame = new javax.swing.JFrame("Ohjeet")
 
   val dRb = new ButtonGroup()
   dRb.add(d1)
@@ -422,6 +424,7 @@ object window extends PApplet with ActionListener{
       case "bomb" => this.cWeapon = "bomb"
       case "cancel" => this.cWeapon = "shoot"
       case "radar" => this.cWeapon = "radar"
+      case "help" => this.helpFrame.setVisible(true)
     }
     
   }
@@ -434,6 +437,27 @@ object window extends PApplet with ActionListener{
     val buttonPanel = new JPanel
     val controlPanel = new JPanel
     
+    val helpB = new JButton("Ohjeet")
+    val ohjeet: String = """Valitse pelin vaikeustaso painikkeilla “Helppo”, “Keskivaikea” ja “Vaikea” ja valitse sitten “Uusi peli”.
+
+Vasemmalla näet oman laivaston tilan ja vihollisen pommitukset. Oikealla puolella ruutua on omat ampumiset ja vihollisen laivat.
+
+Ammu tavallisesti: Klikkaa vihollislaivaston alueelta valitsemaasi ruutua. Laivaan osumisesesta saa uuden vuoron.
+
+Käytä erikoisasetta: Valitse “Pommi” tai “Tutka”. “Peru” poistaa valinnan. Pommi ampuu yhdeksän ruutua ja tutka paljastaa yhdeksän ruutua. Käytä kuten tavallista asetta, klikkaa yhtä ruutua kerrallaan. 
+Erikoisaseen käyttäminen kuluttaa yhden vuoron.
+
+Upota kaikki vastustajan laivat!"""
+    
+    
+    val tekstikentta = new JTextArea(ohjeet)
+    tekstikentta.setEditable(false)
+    tekstikentta.setLineWrap(true)
+    tekstikentta.setWrapStyleWord(true)
+    this.helpFrame.add(tekstikentta)
+    this.helpFrame.setSize(new Dimension(768, 384))
+    
+    helpB.setActionCommand("help")
     b1.setActionCommand("start")
     b2.setActionCommand("end")
     b3.setActionCommand("bomb")
@@ -449,6 +473,7 @@ object window extends PApplet with ActionListener{
     b3.addActionListener(this)
     b4.addActionListener(this)
     b5.addActionListener(this)
+    helpB.addActionListener(this)
     
     gamePanel.add(this)
     buttonPanel.add(b1)
@@ -457,11 +482,11 @@ object window extends PApplet with ActionListener{
     buttonPanel.add(d2)
     d2.setSelected(true) //keskivaikea vaikeustaso valitaan oletuksena
     buttonPanel.add(d3)
+    buttonPanel.add(helpB)
     
     controlPanel.add(b3)
     controlPanel.add(b5)
     controlPanel.add(b4)
-    //TODO: lisää pommien (hetkellinen) lukumäärä, + piste-/rahamäärä, muiden power-uppien määrä ?
     
     bigFrame.add(buttonPanel, BorderLayout.PAGE_START)
     bigFrame.add(gamePanel, BorderLayout.CENTER)
