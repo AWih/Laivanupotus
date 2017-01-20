@@ -2,21 +2,14 @@ package peli
 import scala.collection.mutable.Buffer
 import scala.math.max
 
-/*
- * testikommentti
- */
 
 class Ship(private val x1: Int, 
     private val y1: Int, 
     private val x2: Int, 
     private val y2: Int) {
-
-  //println("x1:"+x1+" y1:"+y1+" x2:"+x2+" y2:"+y2)
   
   val blocks: Buffer[Block] = Buffer[Block]()
-  
   val size: Int = max(x2 - x1 + 1, y2 - y1 + 1)
-  
   val vertical: Boolean = y2 - y1 > x2 - x1
   
   for (xx<-x1 to x2) {
@@ -27,16 +20,15 @@ class Ship(private val x1: Int,
   
   /**
    * checkHit tarkistaa, osuiko ampuninen kyseiseen laivaan. Palauttaa true osumasta, muuten false.
-   * Jos löytyy osuma, päivitetään tieto vastaavaan laivan osaan, eli osuman saanut osa "upotetaan".
+   * Jos damage on true, päivitetään tieto vastaavaan laivan osaan, eli osuman saanut osa "upotetaan".
    */
-  def checkHit(x: Int, y: Int, damage:Boolean): Boolean = {
+  def checkHit(x: Int, y: Int, damage: Boolean): Boolean = {
     this.blocks.exists(_.checkHit(x, y, damage))
   }
   
   def isSunk: Boolean = !this.blocks.exists(_.isIntact)
   
-  // Nämä on testiohjelman printtausta varten, näitä ei välttämättä tarvii myöhemmin. En vain 
-  // viitsinyt omin päin muuttaa noita yksityisiä muuttujia julkisiksi.
+  //Nämä ovat testiohjelman printtausta varten
   def ekaX = this.x1
   def tokaX = this.x2
   def ekaY = this.y1

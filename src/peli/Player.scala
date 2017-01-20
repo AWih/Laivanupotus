@@ -102,7 +102,7 @@ trait Player {
   }
 
   /*
-   * Vakoilu paljastaa pelaajalle yhden vihollisen ruudun ja palauttaa true jos paljastui laivan osa, muuten false.
+   * Tämä metodi paljastaa pelaajalle yhden vihollisen ruudun ja palauttaa true jos paljastui laivan osa, muuten false.
    * Jos ruutu on ennestään tunnettu, ei tehdä mitään ja palautetaan false
    */
   def revealEnemySqr(x: Int, y: Int): Boolean = {
