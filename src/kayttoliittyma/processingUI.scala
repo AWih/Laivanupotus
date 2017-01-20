@@ -25,6 +25,12 @@ object window extends PApplet with ActionListener{
   var cGame: Option[Game] = None
   var currSettings: Opts = Opts.createWithDifficulty("medium")
   var newSettings: Opts = Opts.createWithDifficulty("medium")
+  /*
+   * Pelissä käytettävät aseet/power-upit ovat:
+   * shoot (oletus)
+   * bomb
+   * radar
+   */
   var cWeapon: String = "shoot"
   var startGameFlag: Boolean = false
   var endGameFlag: Boolean = false
@@ -52,13 +58,7 @@ object window extends PApplet with ActionListener{
   dRb.add(d2)
   dRb.add(d3)
   dRb.add(d4)
-  
-  /*
-   * Pelissä käytettävät aseet/power-upit ovat:
-   * shoot (oletus)
-   * bomb
-   * radar
-   */
+
  
 //kuvien lataus
   
