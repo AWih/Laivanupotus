@@ -10,7 +10,7 @@ class Game(val options: Opts) {
   human.setEnemy(ai) 
   ai.setEnemy(human)
   
-  Sound.backroundMusic.loop(5)
+  //Sound.backroundMusic.loop(5)
   
   def winner: Option[Player] = {
     if (this.ai.isDefeated) Some(this.human) else if (this.human.isDefeated) Some(this.ai) else None

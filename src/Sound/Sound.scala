@@ -48,6 +48,7 @@ class Sound(path: String) {
   def loop(volume: Float): Unit = {
     clip.open(audioIn)
     setVolume(volume)
+    clip.loop(Clip.LOOP_CONTINUOUSLY)
     clip.start
   }
 }
