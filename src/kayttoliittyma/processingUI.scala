@@ -44,9 +44,10 @@ object window extends PApplet with ActionListener{
   
   //varsinainen pääikkuna, joka luodaan jo tässä, jotta ikkunan kokoa voidaan myöhemmin muuttaa
   val bigFrame = new javax.swing.JFrame("Laivanupotus")
+  //ohjeikkuna
   val helpFrame = new javax.swing.JFrame("Ohjeet")
 
-  val dRb = new ButtonGroup()
+  val dRb = new ButtonGroup() //dRb:  difficulty Radio button
   dRb.add(d1)
   dRb.add(d2)
   dRb.add(d3)
@@ -74,7 +75,7 @@ object window extends PApplet with ActionListener{
   //muut
   val ripple = loadImage("img/96/ripple96overlay.png")
   val smoke = loadImage("img/96/smoke96overlay.png")
-  val water = loadImage("img/96/water96.png")
+  //val water = loadImage("img/96/water96.png")
   val ocean = loadImage("img/ocean2.png")
   var resizedOcean = ocean.get
   //val fog = loadImage("img/96/fog96.png")
@@ -96,14 +97,6 @@ object window extends PApplet with ActionListener{
       (4, true) -> ver4, (4, false) -> hor4)
 
       
-  //testausarvot
-//  private val gSize = Vector[Int](8, 8)
-//  private val fleet = Vector[Int](3, 3, 2, 4, 1)
-//  private val powerUps = Vector(3) //toistaiseksi 1. arvo on 1-säteisten pommien määrä
-//  private val aiLevel = 0
-//  private val testSettings: Opts = new Opts(gSize, fleet, powerUps, aiLevel)  
-
-
   def gridWidth = this.currSettings.gridSize(0)
   def gridHeight = this.currSettings.gridSize(1)
   
@@ -145,6 +138,10 @@ object window extends PApplet with ActionListener{
     }
   }
   
+  /*
+   * Tätä metodia käytetään täyttämään peliruudukko vedellä, kun käytetään neliömäistä water-kuvaa
+   */
+  /*
   def drawWaterAt(topLeftX: Int, topLeftY: Int): Unit = {
     for (i <- topLeftY until (topLeftY + gridHeight * this.sqrSize) by this.sqrSize) {
       for (j <- topLeftX until (topLeftX + gridWidth * this.sqrSize) by this.sqrSize) {
@@ -152,6 +149,7 @@ object window extends PApplet with ActionListener{
       }
     }
   }
+  */
   
   def drawGridAt(topLeftX: Int, topLeftY: Int): Unit = {
     //horizontal lines
@@ -180,6 +178,7 @@ object window extends PApplet with ActionListener{
       rect(chX*sqrSize+8, chY*sqrSize+8,(chX2-chX+1)*sqrSize-16,(chY2-chY+1)*sqrSize-16)
     }
     else {
+      //tavallinen tähtäin
       val chX = mouseX/sqrSize
       val chY = mouseY/sqrSize
       val chX2 = mouseX/sqrSize
