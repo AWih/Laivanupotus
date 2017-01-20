@@ -10,6 +10,7 @@ import scala.collection.mutable.Buffer
 import scala.math.min
 import scala.math.max
 import scala.math.abs
+import Sound._
 
 //TEHTÄVÄLISTA
 /*
@@ -452,6 +453,8 @@ object window extends PApplet with ActionListener{
     bigFrame.setVisible(true)
     bigFrame.setLocationRelativeTo(null)
     bigFrame.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE)
+    
+    Sound.backroundMusic.loop(5)
   }
   
 }
