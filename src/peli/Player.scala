@@ -5,7 +5,6 @@ import Sound._
 
 trait Player {
   val r = new Random()
-  var score: Int
   val options: Opts
   val resources: Array[Int] = this.options.powerUps.toArray
   val fleet: Buffer[Ship]
@@ -14,12 +13,12 @@ trait Player {
    * 0: tuntematon ruutu
    * 1: osuma
    * 2: huti
-   * 3: paljastettu ruutu (laiva)
-   * 4: paljastettu ruutu (tyhjä)
+   * 3: tutkan paljastama ruutu (laiva)
+   * 4: tutkan paljastama ruutu (tyhjä)
    */
   val squaresBombed: Array[Array[Int]]
   def isDefeated: Boolean = this.fleet.forall(_.isSunk)
-  var enemy: Player = this // TODO: laita privaatiksi
+  var enemy: Player = this 
 
   def setEnemy(newEnemy: Player) = this.enemy = newEnemy
 
@@ -120,7 +119,7 @@ trait Player {
 
   def useRadar(x: Int, y: Int): String = {
     //tutka käyttää ruudun paljastusta samalla tavalla kuin pommitus ampumista
-    val radius = 1 //voisi tulla esim asetuksista. Toisaalta erilaiset koot vaatisivat muutoksia komentojen parsimiseen!
+    val radius = 1 
     var ret: String = ""
     val radarUsesLeft = this.resources(1)
     if (radarUsesLeft > 0) {
@@ -137,7 +136,7 @@ trait Player {
   }
 
   def bomb(x: Int, y: Int): String = {
-    val radius = 1 //voisi tulla esim asetuksista. Toisaalta erilaiset koot vaatisivat muutoksia komentojen parsimiseen!
+    val radius = 1 
     var ret: String = ""
     val bombsLeft = this.resources(0)
     if (bombsLeft > 0) {
@@ -158,7 +157,6 @@ trait Player {
 }
 
 class HumanPlayer(val options: Opts) extends Player {
-  var score = 0
   val fleet: Buffer[Ship] = Buffer[Ship]()
   val squaresBombed = Array.fill(options.gridSize(0), options.gridSize(1))(0)
   this.placeFleet
@@ -190,14 +188,13 @@ class HumanPlayer(val options: Opts) extends Player {
 }
 
 class ComputerPlayer(val options: Opts) extends Player {
-  var score = 0
   val fleet: Buffer[Ship] = Buffer[Ship]()
   val squaresBombed = Array.fill(options.gridSize(0), options.gridSize(1))(0)
   this.placeFleet
   private var previousHit: Option[(Int, Int)] = None
 
   /** Tekee listan kentän koordinaateista, joihin ei ole vielä ammuttu */
-  def freeSquares(): Seq[(Int, Int)] = {
+  private def freeSquares(): Seq[(Int, Int)] = {
       val freeSquares: Seq[(Int, Int)] = for {
       i <- 0 until this.squaresBombed.size
       j <- 0 until this.squaresBombed(i).size
@@ -207,18 +204,19 @@ class ComputerPlayer(val options: Opts) extends Player {
   }
   
   /** Koittaa valita mitkä tahansa olemassa olevat koordinaatit, joihin ei vielä ole ammuttu */
-  def randomFreeSquare(): (Int, Int) = {
+  private def randomFreeSquare(): (Int, Int) = {
     val coords = freeSquares()
     if (!coords.isEmpty && this.resources(0) == 0) {     // Jos kentällä suinkin on vapaita ruutuja ja lisäksi ei ole resursseissa erikoispommeja 
-      coords(r.nextInt(freeSquares.size))
-    } else if (this.resources(0) > 0) {   // Jos on erikoispommeja, arvotaan niille suotuisten koordinaattien joukosta                
+      coords(r.nextInt(freeSquares.size))                // (jos erikoispommeja on jäljellä, halutaan mielummin ampua niillä)
+      
+    } else if (this.resources(0) > 0) {   // Jos on erikoispommeja jäljellä, arvotaan niille suotuisten koordinaattien joukosta                
       coordsForBomb()
     } else {
       (0, 0)
     }
   }
   
-  def coordsForBomb() = {
+  private def coordsForBomb() = {
     val coordsList = List((1,1), (options.gridSize(0) - 2, options.gridSize(1) - 2), (options.gridSize(0) - 2, 1), (1, options.gridSize(1) - 2))
     var coords = coordsList(r.nextInt(coordsList.size))  
     while (!squareIsFree(coords)) {                    // Tämä toimii, kunhan pommeja ei ole enemmän kuin listassa alkioita. Jos pelivaihtoehtoihin lisätään pommeja,
@@ -228,7 +226,7 @@ class ComputerPlayer(val options: Opts) extends Player {
   }
 
   /** Tekee listan olemassa olevista naapurikoordinaateista */
-  def neighborCoords(x: Int, y: Int): List[(Int, Int)] = {
+  private def neighborCoords(x: Int, y: Int): List[(Int, Int)] = {
     val w = options.gridSize(0)
     val h = options.gridSize(1)
     def inBounds(x: Int, y: Int): Boolean = x >= 0 && x < w && y >= 0 && y < h
@@ -237,7 +235,7 @@ class ComputerPlayer(val options: Opts) extends Player {
   }
 
   /** Koittaa valita edellisen ampumisen vierestä koordinaatit, joihin ei ole vielä ammuttu */
-  def coordsClose(priviousHit: (Int, Int)): (Int, Int) = {
+  private def coordsClose(priviousHit: (Int, Int)): (Int, Int) = {
     val list = neighborCoords(priviousHit._1, priviousHit._2)
     val freeCoords = list.filter(squareIsFree)
     if (freeCoords.isEmpty) {
@@ -248,17 +246,17 @@ class ComputerPlayer(val options: Opts) extends Player {
   }
 
   /** Palauttaa true, jos koordinaatteihin ei ole vielä ammuttu, false jos on */
-  def squareIsFree(t: (Int, Int)) = (this.squaresBombed(t._1)(t._2) == 0)
+  private def squareIsFree(t: (Int, Int)) = (this.squaresBombed(t._1)(t._2) == 0)
  
   /** Tason "easy" tekoäly */
-  def performEasy: String = {
+  private def performEasy: String = {
       val whereToShoot = randomFreeSquare()
       val hit = shoot(whereToShoot._1, whereToShoot._2)
       s"Tietokone ampui. ${hitToString(hit)}\n"
   }
 
   /** Tasojen medium ja difficult tekoälyt */
-  def performMedOrDif: String = {
+  private def performMedOrDif: String = {
     var whereToShoot: (Int, Int) = previousHit match {  
       case None =>          // Käytännössä tämä tapaus vastaa tilannetta, jossa ei olla kertaakaan osuttu tavallisella ammuksella.                            
         randomFreeSquare() 
@@ -268,7 +266,7 @@ class ComputerPlayer(val options: Opts) extends Player {
   
     var hit = false
     if (bomb(whereToShoot._1, whereToShoot._2).equals("Pommit loppu!\n")) {                                                                     
-      hit = shoot(whereToShoot._1, whereToShoot._2)                           // Jos pommeja ei ollut jälhellä, ammutaan normaalisti.
+      hit = shoot(whereToShoot._1, whereToShoot._2)                           // Jos pommeja ei ollut jäljellä, ammutaan normaalisti.
       if (hit)(previousHit = Some(whereToShoot))                              // Osuman tapahtuessa päivitetään "previousHit", jotta seuraavaksi osataan ampua
     }                                                                         // sen viereen.    
    
@@ -280,29 +278,5 @@ class ComputerPlayer(val options: Opts) extends Player {
      else (performMedOrDif)
   }
 
-  /*
-     *     if (useRadar(whereToShoot._1, whereToShoot._2).equals("Tutkan käytöt loppu!\n")) {    // Ehtolausekkeessa käytetään tutkaa, jos tutkia on jäljellä.  
-        val revealed = this.findRevealed
-        if (!revealed.isEmpty) {                                                            // Jos tutka on paljastanut laivan osia, ammutaan sinne
-          hit = shoot(revealed(0)._1, revealed(0)._2)
-        } else {
-          hit = shoot(whereToShoot._1, whereToShoot._2)    
-        }  
-      }
-      tuli error: Exception in thread "Animation Thread" scala.MatchError: 4 (of class java.lang.Integer)
-     * 
-     *   /** Etsii tutkan paljastamat laivanpalaset ja palauttaa niiden sijaintikoordinaatit */
-  def findRevealed() = {
-    val revealedBlocks: Seq[(Int, Int)] = for {
-      i <- 0 until this.squaresBombed.size
-      j <- 0 until this.squaresBombed(i).size
-      if (this.squaresBombed(i)(j) == 4)
-    } yield (i, j)
-    revealedBlocks
-  }
-     * 
-     * 
-     * 
-     */
 
 }
