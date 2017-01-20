@@ -54,15 +54,17 @@ class Sound(path: String) {
 
 object Sound {
   
-  def hutiAani = new Sound("Sound/lava.wav")
-  def jokuAani = new Sound("Sound/bookFlip1.wav")
-  def taustaMusa = new Sound("Sound/Menu.wav")
+  def miss = new Sound("Sound/lava.wav")
+  def hit = new Sound("Sound/explosion5.wav")
+  def radar = new Sound("Sound/radar1.wav")
+  def bomb = new Sound("Sound/explosion1.wav")
+  def backroundMusic = new Sound("Sound/wind1.wav")
 
 }
 /** Demo äänien käytöstä */
 object main extends App{
   
-  Sound.hutiAani.play
+  Sound.miss.play
   // Alla olevaa ei tarvitse pelissä
   Thread.sleep(1000)
   

@@ -1,6 +1,7 @@
 package peli
 import scala.collection.mutable.Buffer
 import scala.util.Random
+import Sound._
 
 trait Player {
   val r = new Random()
@@ -178,6 +179,12 @@ class HumanPlayer(val options: Opts) extends Player {
     } else if (action == "radar") {
       outcome = this.useRadar(x, y)
     } else outcome = "väärä komento"
+    
+    // Äänet
+    if      (outcome.equals("Osuma!\n"))(Sound.hit.play(-15))
+    else if (outcome.equals("Huti!\n")) (Sound.miss.play(-5))
+    else if (action.equals("bomb"))     (Sound.bomb.play())
+    else if (action.equals("radar"))    (Sound.radar.play(5))
     outcome
   }
 }
@@ -202,11 +209,22 @@ class ComputerPlayer(val options: Opts) extends Player {
   /** Koittaa valita mitkä tahansa olemassa olevat koordinaatit, joihin ei vielä ole ammuttu */
   def randomFreeSquare(): (Int, Int) = {
     val coords = freeSquares()
-    if (!coords.isEmpty) {     // Jos kentältä löytyy vapaita ruutuja, arvotaan koordinaattipari näiden joukosta  
+    if (!coords.isEmpty && this.resources(0) == 0) {     // Jos kentällä suinkin on vapaita ruutuja ja lisäksi ei ole resursseissa erikoispommeja 
       coords(r.nextInt(freeSquares.size))
-    } else {                   // Virhetapaus, koko kenttä oli jo täynnä!
+    } else if (this.resources(0) > 0) {   // Jos on erikoispommeja, arvotaan niille suotuisten koordinaattien joukosta                
+      coordsForBomb()
+    } else {
       (0, 0)
     }
+  }
+  
+  def coordsForBomb() = {
+    val coordsList = List((1,1), (options.gridSize(0) - 2, options.gridSize(1) - 2), (options.gridSize(0) - 2, 1), (1, options.gridSize(1) - 2))
+    var coords = coordsList(r.nextInt(coordsList.size))  
+    while (!squareIsFree(coords)) {                    // Tämä toimii, kunhan pommeja ei ole enemmän kuin listassa alkioita. Jos pelivaihtoehtoihin lisätään pommeja,
+      coords = coordsList(r.nextInt(coordsList.size))  // on suotuisia koordinaatteja lisättävä. Jatkokehittely: automaattinen tapa generoida sopivia koordinaatteja
+    }
+    coords
   }
 
   /** Tekee listan olemassa olevista naapurikoordinaateista */
@@ -243,7 +261,7 @@ class ComputerPlayer(val options: Opts) extends Player {
   def performMedOrDif: String = {
     var whereToShoot: (Int, Int) = previousHit match {  
       case None =>          // Käytännössä tämä tapaus vastaa tilannetta, jossa ei olla kertaakaan osuttu tavallisella ammuksella.                            
-        randomFreeSquare()  
+        randomFreeSquare() 
       case Some(prevHit) =>                            
         coordsClose(prevHit)
     }
@@ -253,7 +271,7 @@ class ComputerPlayer(val options: Opts) extends Player {
       hit = shoot(whereToShoot._1, whereToShoot._2)                           // Jos pommeja ei ollut jälhellä, ammutaan normaalisti.
       if (hit)(previousHit = Some(whereToShoot))                              // Osuman tapahtuessa päivitetään "previousHit", jotta seuraavaksi osataan ampua
     }                                                                         // sen viereen.    
-    
+   
     s"Tietokone ampui. ${hitToString(hit)}\n" // Isoa pommia käytettäessä väittää tekstiUi:ssä "Huti!" vaikka osuma tai osumia olisi tullutkin.
   }
   
