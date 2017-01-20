@@ -15,9 +15,7 @@ import Sound._
 
 //TEHTÄVÄLISTA
 /*
- * Asetukset (musiikille ym., sekä pelin toiminnoille erikseen) (sis. mukautettu-asetukset)
- * raportti
- * ohjeet
+ * Asetukset (musiikille ym., sekä pelin toiminnoille erikseen) (sis. mukautettu-asetukset) (?)
  */
 
 object window extends PApplet with ActionListener{
@@ -168,7 +166,6 @@ object window extends PApplet with ActionListener{
   
   def drawTargeting() {
         //piirrä tähtäin
-    //TODO: tähtäimen sijaan hiiren vierellä voisi näkyä jokin kuvake, joka kertoo, onko valittu pommi tms.
     val chR = 10 //crosshair radius
     //line(mouseX - chR, mouseY - chR, mouseX + chR, mouseY + chR)
     //line(mouseX + chR, mouseY - chR, mouseX - chR, mouseY + chR)
@@ -217,7 +214,6 @@ object window extends PApplet with ActionListener{
   }
   
   def drawEndScreen() {
-      //println("ehto on tarkistettu")
       picFade = min(230,picFade+1/*abs(picFade-200)/40*/)
       textScroll = min(textScroll+abs(textScroll-300)/30,this.height/2)
       tint(255, picFade)
@@ -226,10 +222,8 @@ object window extends PApplet with ActionListener{
       tint(255, 255)
       textSize(30)
       text("Peli loppui!", min(300, textScroll), 200)
-      //println("tulostetaan voittaja...")
-      //println(s"${this.cGame.get.winner.getOrElse("")} voitti pelin!")
+
       text(if (this.cGame.get.winner.get == this.cGame.get.human) "Voitit pelin!" else "Hävisit pelin!", 350, min(250,textScroll))
-      //TODO:lisää muotoilu, lopeta komentojen ottaminen?
   }
   
   def drawStartScreen() {
@@ -246,7 +240,6 @@ object window extends PApplet with ActionListener{
     
     
     //vastustajan uponneet laivat 
-    //TODO: voisi riippua vaikeusasteesta?
     val foeFleet: Option[Buffer[Ship]] = this.cGame.map{ game => game.ai.fleet }
     for (fleet <- foeFleet) {
       fleet.foreach(this.drawFoeShip(_))
@@ -406,7 +399,6 @@ object window extends PApplet with ActionListener{
         val y = this.mouseY / this.sqrSize
         //--- tässä pelataan varsinainen vuoro! ---
         this.cGame.foreach { game => game.playTurns(s"${this.cWeapon} $x $y") }
-        //TODO: ota palautusarvo talteen. Ilmoita esim. pommien nykyinen määrä
         this.updateButtons()
         
         
@@ -415,7 +407,6 @@ object window extends PApplet with ActionListener{
   }
   
   def actionPerformed(e: ActionEvent) = {
-    //println("nappulaa painettiin")
     
     val cmd: String = e.getActionCommand
     cmd match {
