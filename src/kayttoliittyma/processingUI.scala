@@ -14,17 +14,9 @@ import Sound._
 
 //TEHTÄVÄLISTA
 /*
- * Käyttöliittymään valintapainike musiikille
  * Asetukset (musiikille ym., sekä pelin toiminnoille erikseen) (sis. mukautettu-asetukset)
- * Tietokonepelaajan vaikeustasot ja pommien käyttö
- * (lisää power-upeja, esim. alueen paljastava toiminto)
- * TEHTY: -> checkHit:ille joka vaiheessa uusi parametri, joka mahdollistaa tilaa muuttamattoman tarkistuksen
- * power-up -nappuloiden toiminta loppuun
- * TEHTY(?): visuaaliset lisäefektit
  * raportti
- * TEHTY: veden piirtäminen
- * TEHTY: taustakuvan skaalaus
- * ohjeet ja tarina(?)
+ * ohjeet
  */
 
 object window extends PApplet with ActionListener{
@@ -319,6 +311,36 @@ object window extends PApplet with ActionListener{
     }
   }
   
+  private def updateButtons(): Unit = {
+    if (this.cGame.isDefined) {
+      b3.setText(s"Pommi (${this.cGame.get.human.resources(0)})")
+      b5.setText(s"Tutka (${this.cGame.get.human.resources(1)})")
+      
+      if (this.cGame.get.human.resources(0) == 0)  {
+        if (this.cWeapon == "bomb") this.cWeapon = "shoot"
+        b3.setEnabled(false) //nappulaa ei voi painaa
+      }
+      else {
+        b3.setEnabled(true)
+      }
+      if (this.cGame.get.human.resources(1) == 0) {
+        if (this.cWeapon == "radar" ) this.cWeapon = "shoot"
+        b5.setEnabled(false)
+      }
+      else {
+        b5.setEnabled(true)
+      }
+      b4.setEnabled(true)
+    }
+    else {
+      b3.setEnabled(false)
+      b3.setText("Pommi")
+      b4.setEnabled(false)
+      b5.setEnabled(false)
+      b5.setText("Tutka")
+    }
+  }
+  
   //--VARSINAINEN PIIRTÄMINEN SEKÄ PELIN ALOITUS JA LOPETUS--
   override def draw(): Unit = {
     
@@ -334,8 +356,7 @@ object window extends PApplet with ActionListener{
       this.bigFrame.pack()
       this.cGame = Some(new Game(this.newSettings))
 
-      this.b3.setEnabled(true)
-      this.b5.setEnabled(true)
+      this.updateButtons()
       this.startGameFlag = false
     }
     
@@ -369,6 +390,7 @@ object window extends PApplet with ActionListener{
     //--pelin lopetus lipun perusteella--
     if (this.endGameFlag) {
       this.cGame = None
+      this.updateButtons()
       this.endGameFlag = false
     }
   }
@@ -383,15 +405,9 @@ object window extends PApplet with ActionListener{
         //--- tässä pelataan varsinainen vuoro! ---
         this.cGame.foreach { game => game.playTurns(s"${this.cWeapon} $x $y") }
         //TODO: ota palautusarvo talteen. Ilmoita esim. pommien nykyinen määrä
-        //jos jokin power-up loppuu kesken, sen nappula laitetaan pois käytöstä ja vaihdetaan oletusaseeseen
-        if (this.cGame.get.human.resources(0) <= 0 && this.cWeapon == "bomb")  {
-          this.cWeapon = "shoot"
-          b3.setEnabled(false) //nappulaa ei voi painaa
-        }
-        else if (this.cGame.get.human.resources(1) <= 0 && this.cWeapon == "radar") {
-          this.cWeapon = "shoot"
-          b5.setEnabled(false)
-        }
+        this.updateButtons()
+        
+        
       }
     }
   }
@@ -423,6 +439,10 @@ object window extends PApplet with ActionListener{
     b3.setActionCommand("bomb")
     b4.setActionCommand("cancel")
     b5.setActionCommand("radar")
+    
+    b3.setEnabled(false)
+    b4.setEnabled(false)
+    b5.setEnabled(false)
     
     b1.addActionListener(this)
     b2.addActionListener(this)
