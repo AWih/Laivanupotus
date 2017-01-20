@@ -7,7 +7,7 @@ object textUI extends App {
   //testausarvot
   private val size = Vector[Int](6, 6)
   private val fleet = Vector[Int](3,3,4,4,3)
-  private val powerUps = Vector(3) //toistaiseksi 1. arvo on 1-säteisten pommien määrä
+  private val powerUps = Vector(3, 2) //toistaiseksi 1. arvo on 1-säteisten pommien määrä
   private val aiLevel = 0
   private val testSettings: Opts = new Opts(size, fleet, powerUps, aiLevel)
   

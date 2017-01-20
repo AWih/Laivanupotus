@@ -63,14 +63,8 @@ object window extends PApplet with ActionListener{
    * Pelissä käytettävät aseet/power-upit ovat:
    * shoot (oletus)
    * bomb
-   * 
+   * radar
    */
-  
-  /*
-  val PUButtons: Map[String, JButton] = Map (
-      "shoot" -> this.b4, "bomb" -> this.b3, "radar" -> this.b5
-      )
-  */
  
 //kuvien lataus
   
